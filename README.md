@@ -94,3 +94,4 @@ http://localhost:8000
 
 ## 📜 License
 MIT License - Open Source & Free to Customize.
+# agentic-ai-trading-bot
