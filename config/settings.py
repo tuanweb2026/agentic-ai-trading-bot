@@ -22,7 +22,7 @@ class Settings:
     # ⏱️ KHÓA TẦN SUẤT COOLDOWN 15 PHÚT (900 SECONDS MỖI CẶP COIN)
     ORDER_COOLDOWN_SECONDS: int = 900
     
-    # 🔒 GIỚI HẠN TỐI ĐA 2 VỊ THẾ MỞ CÙNG LÚC ($160 USD VỐN - DỰ TRỮ $140+ USDT TIỀN MẶT)
-    MAX_CONCURRENT_POSITIONS: int = 2
+    # 🔒 GIỚI HẠN TỐI ĐA 3 VỊ THẾ MỞ CÙNG LÚC ($240 USD VỐN - DỰ TRỮ $76+ USDT TIỀN MẶT)
+    MAX_CONCURRENT_POSITIONS: int = 3
 
 settings = Settings()
