@@ -4,8 +4,8 @@ class TradingDashboard {
     constructor() {
         this.portfolio = {
             initialBalance: 395.36,
-            cash: 310.96,
-            totalPortfolioUsd: 398.22,
+            cash: 313.80,
+            totalPortfolioUsd: 400.15,
             peakValue: 432.47,
             positions: [],
             tradeHistory: []
@@ -23,7 +23,7 @@ class TradingDashboard {
         // Mốc lọc vảy coin lẻ (Dust Minimum): Phải lớn hơn $15.00 USD mới tính là Vị thế đang giữ
         this.minPositionValueUsd = 15.00;
 
-        this.sessionStartBalance = 398.22;
+        this.sessionStartBalance = 400.15;
         this.sessionStartTime = new Date().toLocaleTimeString();
 
         // Bảng Cooldown 15 phút (900,000 ms)
@@ -32,15 +32,15 @@ class TradingDashboard {
 
         // Giá thị trường THẬT từ Binance API (Được cập nhật tự động từ sàn Binance)
         this.marketData = {
-            "BTC/USDT": { price: 65200.0, rsi: 48.5, zScore: 0.45, strainStatus: "NORMAL" },
-            "ETH/USDT": { price: 3510.0, rsi: 72.4, zScore: 2.15, strainStatus: "OVERSTRETCHED_UP" },
-            "SOL/USDT": { price: 148.5, rsi: 28.1, zScore: -2.35, strainStatus: "OVERSTRETCHED_DOWN" },
-            "BNB/USDT": { price: 582.4, rsi: 52.0, zScore: 0.65, strainStatus: "NORMAL" },
+            "BTC/USDT": { price: 71199.0, rsi: 48.5, zScore: 0.45, strainStatus: "NORMAL" },
+            "ETH/USDT": { price: 2266.6, rsi: 72.4, zScore: 2.15, strainStatus: "OVERSTRETCHED_UP" },
+            "SOL/USDT": { price: 87.39, rsi: 28.1, zScore: -2.35, strainStatus: "OVERSTRETCHED_DOWN" },
+            "BNB/USDT": { price: 638.7, rsi: 52.0, zScore: 0.65, strainStatus: "NORMAL" },
             "XRP/USDT": { price: 0.58, rsi: 76.2, zScore: 2.40, strainStatus: "OVERSTRETCHED_UP" },
-            "ADA/USDT": { price: 0.38, rsi: 26.5, zScore: -2.10, strainStatus: "OVERSTRETCHED_DOWN" },
-            "AVAX/USDT": { price: 24.8, rsi: 58.0, zScore: 0.90, strainStatus: "NORMAL" },
-            "NEAR/USDT": { price: 4.32, rsi: 44.0, zScore: -0.55, strainStatus: "NORMAL" },
-            "LINK/USDT": { price: 11.95, rsi: 68.0, zScore: 1.85, strainStatus: "NORMAL" },
+            "ADA/USDT": { price: 0.187, rsi: 26.5, zScore: -2.10, strainStatus: "OVERSTRETCHED_DOWN" },
+            "AVAX/USDT": { price: 6.86, rsi: 58.0, zScore: 0.90, strainStatus: "NORMAL" },
+            "NEAR/USDT": { price: 1.75, rsi: 44.0, zScore: -0.55, strainStatus: "NORMAL" },
+            "LINK/USDT": { price: 10.63, rsi: 68.0, zScore: 1.85, strainStatus: "NORMAL" },
             "DOT/USDT": { price: 6.45, rsi: 54.0, zScore: 0.85, strainStatus: "NORMAL" }
         };
 
@@ -64,6 +64,9 @@ class TradingDashboard {
         this.initUI();
         this.bindEvents();
         this.syncRealBinanceBalance();
+
+        // 🚀 TỰ ĐỘNG KÍCH HOẠT NHỊP TIM ĐỒNG HỒ 30S NGAY KHI NẠP TRANG
+        this.startTimer();
     }
 
     initUI() {
@@ -112,7 +115,7 @@ class TradingDashboard {
             const data = await response.json();
             if (data.success) {
                 this.portfolio.cash = data.usdt_free;
-                const totalUsd = data.total_portfolio_usd > 0 ? data.total_portfolio_usd : 398.22;
+                const totalUsd = data.total_portfolio_usd > 0 ? data.total_portfolio_usd : 400.15;
                 this.portfolio.totalPortfolioUsd = totalUsd;
                 this.portfolio.initialBalance = totalUsd;
 
@@ -160,7 +163,6 @@ class TradingDashboard {
                         if (usdValue >= 15.0) {
                             const existingPos = this.portfolio.positions.find(p => p.symbol === symbol);
 
-                            // Quy chuẩn mốc vốn gốc ($80.00 USD) hoặc mốc vốn ban đầu
                             let entryValueUsd = 80.00;
                             let entryPrice = livePrice;
 
@@ -168,12 +170,10 @@ class TradingDashboard {
                                 entryValueUsd = existingPos.entryValueUsd || 80.00;
                                 entryPrice = existingPos.entryPrice || (entryValueUsd / amount);
                             } else {
-                                // Nếu là vị thế có sẵn từ ví Binance, mốc gốc là $80.00 USD để tính PnL
                                 entryValueUsd = 80.00;
                                 entryPrice = entryValueUsd / amount;
                             }
 
-                            // 🎯 PnL CHÍNH XÁC = Tổng giá trị hiện tại trên Binance App - Mốc vốn gốc ($80.00 USD)
                             const realPnl = usdValue - entryValueUsd;
 
                             syncedPositions.push({
@@ -204,7 +204,6 @@ class TradingDashboard {
     triggerSafetyEmergencyStop(currentBalance) {
         if (this.aiRunning) {
             this.aiRunning = false;
-            this.stopTimer();
 
             const btn = document.getElementById('btnToggleAI');
             const lbl = document.getElementById('lblToggleAI');
@@ -243,7 +242,7 @@ class TradingDashboard {
 
         if (this.aiRunning) {
             const totalVal = this.getPortfolioValue();
-            this.sessionStartBalance = totalVal > 0 ? totalVal : 398.22;
+            this.sessionStartBalance = totalVal > 0 ? totalVal : 400.15;
             this.sessionStartTime = new Date().toLocaleTimeString();
 
             if (btn) btn.className = "btn btn-secondary";
@@ -254,7 +253,6 @@ class TradingDashboard {
             this.addLog("DANGER", `🔴 KÍCH HOẠT ĐỒNG BỘ 100% ĐỊNH GIÁ BINANCE APP! Chốt lời ròng khi Lãi ròng >= +$2.20 USD! Mốc vốn: $${this.sessionStartBalance.toFixed(2)} USD`);
             
             this.runHeartbeatCycle();
-            this.startTimer();
         } else {
             if (btn) btn.className = "btn btn-primary";
             if (lbl) lbl.innerText = "Bắt Đầu AI Đầu Tư (LIVE)";
@@ -262,26 +260,36 @@ class TradingDashboard {
             if (statusTxt) statusTxt.innerText = "AI Đang Tạm Dừng";
 
             this.addLog("WARNING", "⏸ Đã tạm dừng AI.");
-            this.stopTimer();
         }
     }
 
     startTimer() {
         this.stopTimer();
         this.timerSeconds = 30;
+        
         this.timerInterval = setInterval(() => {
             this.timerSeconds--;
             const timerEl = document.getElementById('heartbeatTimer');
             if (timerEl) timerEl.innerText = `${this.timerSeconds}s`;
 
-            this.checkAutoTakeProfitAndStopLoss();
-            this.renderAll();
-
-            if (this.timerSeconds === 20) this.highlightPipelineStep(1, "10s Sub-Agent: Tóm tắt Binance Spot Rubber Band...");
-            if (this.timerSeconds === 10) this.highlightPipelineStep(2, "20s Pod Theory: Đánh giá 10 Spot Pods (Sharpe > 1.0)...");
-            
-            if (this.timerSeconds <= 0) {
+            // 🎯 CẬP NHẬT TIẾN TRÌNH THANH 4 BƯỚC NHỊP TIM THEO GIÂY ĐỘNG (0s -> 30s)
+            if (this.timerSeconds > 20) {
+                this.highlightPipelineStep(0, "0s Market Ingest: Cào dữ liệu nến Binance Live API...");
+            } else if (this.timerSeconds > 10) {
+                this.highlightPipelineStep(1, "10s Sub-Agent: Tóm tắt Binance Spot Rubber Band & RSI...");
+            } else if (this.timerSeconds > 0) {
+                this.highlightPipelineStep(2, "20s Pod Theory: Đánh giá 10 Spot Pods (Sharpe > 1.0)...");
+            } else {
                 this.highlightPipelineStep(3, "30s Spot Execution: Đánh giá & Khớp lệnh THẬT $80.00 USD trên Binance...");
+            }
+
+            if (this.aiRunning) {
+                this.checkAutoTakeProfitAndStopLoss();
+            }
+
+            this.updatePortfolioMetrics();
+
+            if (this.timerSeconds <= 0) {
                 this.runHeartbeatCycle();
                 this.timerSeconds = 30;
             }
@@ -305,8 +313,6 @@ class TradingDashboard {
     }
 
     async runHeartbeatCycle() {
-        this.highlightPipelineStep(0, "0s Market Ingest: Cào dữ liệu giá Binance Spot...");
-
         await this.syncRealBinanceBalance();
         const totalVal = this.getPortfolioValue();
         if (totalVal < 350.00 && totalVal > 0 && this.aiRunning) {
@@ -314,7 +320,9 @@ class TradingDashboard {
             return;
         }
 
-        this.checkAutoTakeProfitAndStopLoss();
+        if (this.aiRunning) {
+            this.checkAutoTakeProfitAndStopLoss();
+        }
 
         // Evaluate 10 Spot Pods
         this.pods.forEach(pod => {
@@ -346,61 +354,60 @@ class TradingDashboard {
             }
         });
 
-        // Live Execution ($80.00 USD per trade)
-        const now = Date.now();
-        let executedAny = false;
+        // Live Execution ($80.00 USD per trade) chỉ khi aiRunning = true
+        if (this.aiRunning) {
+            const now = Date.now();
+            let executedAny = false;
 
-        for (let i = 0; i < this.pods.length; i++) {
-            const pod = this.pods[i];
-            if (!pod.symbol) continue;
+            for (let i = 0; i < this.pods.length; i++) {
+                const pod = this.pods[i];
+                if (!pod.symbol) continue;
 
-            const lastOrderTime = this.lastOrderTimestamps[pod.symbol] || 0;
-            const timeSinceLastOrder = now - lastOrderTime;
+                const lastOrderTime = this.lastOrderTimestamps[pod.symbol] || 0;
+                const timeSinceLastOrder = now - lastOrderTime;
 
-            if (pod.signal === "BUY" || pod.signal === "SELL") {
-                if (pod.sharpe >= 1.0) {
-                    const price = this.marketData[pod.symbol] ? this.marketData[pod.symbol].price : 1.0;
-                    const orderValueUsd = 80.00;
-                    const existing = this.portfolio.positions.find(p => p.symbol === pod.symbol);
+                if (pod.signal === "BUY" || pod.signal === "SELL") {
+                    if (pod.sharpe >= 1.0) {
+                        const price = this.marketData[pod.symbol] ? this.marketData[pod.symbol].price : 1.0;
+                        const orderValueUsd = 80.00;
+                        const existing = this.portfolio.positions.find(p => p.symbol === pod.symbol);
 
-                    // 🔒 GIỚI HẠN TỐI ĐA 3 VỊ THẾ MỞ CÙNG LÚC
-                    if (pod.signal === "BUY" && !existing && this.portfolio.positions.length >= this.maxConcurrentPositions) {
-                        continue;
-                    }
+                        if (pod.signal === "BUY" && !existing && this.portfolio.positions.length >= this.maxConcurrentPositions) {
+                            continue;
+                        }
 
-                    // ⏱️ KIỂM TRA COOLDOWN 15 PHÚT (900,000 ms)
-                    if (timeSinceLastOrder < this.cooldownMs) {
-                        continue;
-                    }
+                        if (timeSinceLastOrder < this.cooldownMs) {
+                            continue;
+                        }
 
-                    if (pod.signal === "BUY" && !existing) {
-                        this.lastOrderTimestamps[pod.symbol] = now;
-                        await this.executeOrder(pod.symbol, pod.id, "BUY", orderValueUsd, price, "Binance Live Fast Recovery Execution");
-                        executedAny = true;
-                    } else if (pod.signal === "SELL" && existing) {
-                        this.lastOrderTimestamps[pod.symbol] = now;
-                        await this.closePosition(pod.symbol);
-                        executedAny = true;
+                        if (pod.signal === "BUY" && !existing) {
+                            this.lastOrderTimestamps[pod.symbol] = now;
+                            await this.executeOrder(pod.symbol, pod.id, "BUY", orderValueUsd, price, "Binance Live Fast Recovery Execution");
+                            executedAny = true;
+                        } else if (pod.signal === "SELL" && existing) {
+                            this.lastOrderTimestamps[pod.symbol] = now;
+                            await this.closePosition(pod.symbol);
+                            executedAny = true;
+                        }
                     }
                 }
             }
-        }
 
-        if (!executedAny && this.portfolio.positions.length === 0) {
-            this.addLog("INFO", `⏱️ [Heartbeat 30s] Quét Binance Spot 10 coin. Thị trường đi ngang, Agent bảo toàn vốn $${totalVal.toFixed(2)} USD.`);
+            if (!executedAny && this.portfolio.positions.length === 0) {
+                this.addLog("INFO", `⏱️ [Heartbeat 30s] Quét Binance Spot 10 coin. Thị trường đi ngang, Agent bảo toàn vốn $${totalVal.toFixed(2)} USD.`);
+            }
         }
 
         this.renderAll();
     }
 
     async checkAutoTakeProfitAndStopLoss() {
+        if (!this.aiRunning) return;
+
         for (let i = this.portfolio.positions.length - 1; i >= 0; i--) {
             const pos = this.portfolio.positions[i];
-            
-            // 🎯 PnL CHÍNH XÁC = Định giá thực tế từ Binance App - Mốc vốn gốc ($80 USD)
             const pnlAmt = pos.realPnl !== undefined ? pos.realPnl : ((pos.currentUsdValue || 80.0) - (pos.entryValueUsd || 80.0));
 
-            // Tự động bán chốt lời ròng khi Lãi ròng thực tế trên Binance App >= +$2.20 USD
             if (pnlAmt >= 2.20) {
                 await this.closePosition(pos.symbol);
             } else if (pnlAmt <= -1.10) {
@@ -482,14 +489,14 @@ class TradingDashboard {
 
     getPortfolioValue() {
         const total = (this.portfolio.totalPortfolioUsd || this.portfolio.cash);
-        return total > 0 ? total : 398.22;
+        return total > 0 ? total : 400.15;
     }
 
     updatePortfolioMetrics() {
         const totalVal = this.getPortfolioValue();
         if (totalVal > this.portfolio.peakValue) this.portfolio.peakValue = totalVal;
 
-        const baseBal = this.sessionStartBalance !== null ? this.sessionStartBalance : 398.22;
+        const baseBal = this.sessionStartBalance !== null ? this.sessionStartBalance : 400.15;
         const sessionPnlUsd = totalVal - baseBal;
         const sessionPnlPct = baseBal > 0 ? ((sessionPnlUsd / baseBal) * 100) : 0.0;
 
@@ -622,7 +629,7 @@ class TradingDashboard {
         const feed = document.getElementById('logFeed');
         if (!feed) return;
 
-        // Tránh ghi log trùng lặp liên tục để giữ màn hình sạch sẽ
+        // Tránh ghi log trùng lặp liên tục
         if (feed.firstChild && feed.firstChild.querySelector('.log-msg')) {
             const lastMsg = feed.firstChild.querySelector('.log-msg').innerText;
             if (lastMsg === message) return;
@@ -634,8 +641,7 @@ class TradingDashboard {
         div.innerHTML = `<span class="log-time">[${timeStr}]</span> <span class="log-msg">${message}</span>`;
         feed.prepend(div);
 
-        // 🚀 TỰ ĐỘNG GIỚI HẠN TỐI ĐA 35 DÒNG LOG MỚI NHẤT DE-CLUTTER DOM TREE
-        // Giúp trình duyệt chạy cực kỳ nhẹ, 0% giật lag, tiêu thụ RAM/CPU siêu thấp khi treo 24h
+        // Giới hạn 35 dòng log mới nhất
         while (feed.children.length > 35) {
             feed.removeChild(feed.lastChild);
         }
