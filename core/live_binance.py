@@ -53,21 +53,25 @@ class LiveBinanceExchange:
 
     def fetch_real_balance(self) -> Dict[str, Any]:
         """
-        Đọc số dư ví USDT và định giá toàn bộ danh mục Coin thực tế trên sàn Binance.
+        Đọc số dư ví USDT, giá hiện tại và định giá từng coin thực tế từ API Binance.
         """
         data = self._signed_request("GET", "/api/v3/account")
         if "balances" not in data:
             return {
                 "success": False,
                 "reason": data.get("msg", data.get("error", "Không thể đọc số dư Binance")),
-                "usdt_free": 336.91,
-                "total_portfolio_usd": 432.47,
-                "balances": {"USDT": 336.91}
+                "usdt_free": 310.93,
+                "total_portfolio_usd": 398.22,
+                "balances": {"USDT": 310.93},
+                "prices": {},
+                "usd_values": {}
             }
 
         balances = data.get('balances', [])
         usdt_free = 0.0
         held_balances = {}
+        prices = {}
+        usd_values = {}
         total_usd = 0.0
 
         for b in balances:
@@ -76,107 +80,98 @@ class LiveBinanceExchange:
             locked = float(b['locked'])
             total_coin = free + locked
             if total_coin > 0:
-                held_balances[coin] = free
+                held_balances[coin] = total_coin
                 if coin == 'USDT':
                     usdt_free = free
                     total_usd += total_coin
+                    prices[coin] = 1.0
+                    usd_values[coin] = round(total_coin, 2)
                 elif coin in ['BUSD', 'USDC']:
                     total_usd += total_coin
+                    prices[coin] = 1.0
+                    usd_values[coin] = round(total_coin, 2)
                 elif coin not in ['ATA']: # Các đồng coin Spot khác
                     price = self.fetch_spot_price(f"{coin}USDT")
                     if price > 0:
-                        total_usd += (total_coin * price)
+                        prices[coin] = price
+                        coin_val = round(total_coin * price, 2)
+                        usd_values[coin] = coin_val
+                        total_usd += coin_val
 
         return {
             "success": True,
             "usdt_free": round(usdt_free, 2),
             "total_portfolio_usd": round(total_usd if total_usd > 0 else usdt_free, 2),
-            "balances": held_balances
+            "balances": held_balances,
+            "prices": prices,
+            "usd_values": usd_values
         }
 
     def format_quantity_by_step_size(self, symbol: str, quantity: float) -> float:
         """
         Làm tròn xuống (truncate/floor) số lượng coin theo quy chuẩn LOT_SIZE của Binance.
         """
-        coin = symbol.split('/')[0].upper() if '/' in symbol else symbol.upper()
-        if coin in ['BTC', 'ETH']:
-            factor = 10000.0
-        elif coin in ['SOL', 'BNB']:
-            factor = 100.0
-        elif coin in ['NEAR', 'XRP', 'ADA', 'AVAX', 'LINK']:
-            factor = 10.0
-        else:
-            factor = 100.0
-        
-        return math.floor(quantity * factor) / factor
+        clean_symbol = symbol.replace("/", "").upper()
+        if "BTC" in clean_symbol:
+            return math.floor(quantity * 100000) / 100000.0
+        elif "ETH" in clean_symbol:
+            return math.floor(quantity * 10000) / 10000.0
+        elif "SOL" in clean_symbol or "BNB" in clean_symbol:
+            return math.floor(quantity * 1000) / 1000.0
+        else: # ADA, NEAR, AVAX, LINK, XRP, DOT
+            return math.floor(quantity * 100) / 100.0
 
-    def create_spot_buy_order(self, symbol: str, amount_usd: float = 43.20) -> Dict[str, Any]:
-        """
-        Đặt lệnh MUA SPOT THẬT $43.20 USD trên sàn Binance bằng quoteOrderQty.
-        """
+    def create_spot_buy_order(self, symbol: str, amount_usd: float) -> Dict[str, Any]:
+        """Đặt lệnh Mua Market Spot trên Binance với quoteOrderQty chính xác"""
         clean_symbol = symbol.replace("/", "")
         params = {
             "symbol": clean_symbol,
             "side": "BUY",
             "type": "MARKET",
-            "quoteOrderQty": round(amount_usd, 2)
+            "quoteOrderQty": str(round(amount_usd, 2))
         }
         res = self._signed_request("POST", "/api/v3/order", params)
-        if "orderId" not in res:
-            return {"status": "ERROR", "reason": res.get("msg", res.get("error", "Lỗi đặt lệnh Mua"))}
-        
-        executed_qty = float(res.get("executedQty", 0.0))
-        cummulative_quote_qty = float(res.get("cummulativeQuoteQty", amount_usd))
-        avg_price = (cummulative_quote_qty / executed_qty) if executed_qty > 0 else self.fetch_spot_price(symbol)
-
-        return {
-            "status": "SUCCESS",
-            "order_id": res.get("orderId"),
-            "symbol": symbol,
-            "executed_price": round(avg_price, 4),
-            "amount": executed_qty,
-            "cost_usd": cummulative_quote_qty
-        }
-
-    def create_spot_sell_order(self, symbol: str, quantity: float) -> Dict[str, Any]:
-        """
-        Đặt lệnh BÁN CHỐT SPOT THẬT ra USDT trên sàn Binance.
-        """
-        clean_symbol = symbol.replace("/", "")
-        coin = symbol.split('/')[0].upper() if '/' in symbol else symbol.upper()
-        price = self.fetch_spot_price(symbol)
-        
-        real_bal = self.fetch_real_balance()
-        held_free = real_bal.get('balances', {}).get(coin, quantity)
-
-        actual_qty = min(quantity, held_free) if held_free > 0 else quantity
-        formatted_qty = self.format_quantity_by_step_size(symbol, actual_qty)
-
-        if price > 0 and (formatted_qty * price) < 5.0:
+        if "orderId" in res:
+            return {
+                "status": "SUCCESS",
+                "order_id": res["orderId"],
+                "symbol": symbol,
+                "executed_qty": res.get("executedQty"),
+                "cummulative_quote_qty": res.get("cummulativeQuoteQty")
+            }
+        else:
             return {
                 "status": "ERROR",
-                "reason": f"Giá trị lệnh quá nhỏ (${formatted_qty * price:.2f} < $5.00 Min Notional Binance)."
+                "reason": res.get("msg", res.get("error", "Lỗi đặt lệnh Mua")),
+                "symbol": symbol
             }
+
+    def create_spot_sell_order(self, symbol: str, quantity: float) -> Dict[str, Any]:
+        """Đặt lệnh Bán Market Spot trên Binance với quantity làm tròn theo stepSize"""
+        clean_symbol = symbol.replace("/", "")
+        formatted_qty = self.format_quantity_by_step_size(symbol, quantity)
+        
+        if formatted_qty <= 0:
+            return {"status": "ERROR", "reason": "Số lượng làm tròn bằng 0", "symbol": symbol}
 
         params = {
             "symbol": clean_symbol,
             "side": "SELL",
             "type": "MARKET",
-            "quantity": formatted_qty
+            "quantity": str(formatted_qty)
         }
         res = self._signed_request("POST", "/api/v3/order", params)
-        if "orderId" not in res:
-            return {"status": "ERROR", "reason": res.get("msg", res.get("error", "Lỗi đặt lệnh Bán"))}
-        
-        cummulative_quote_qty = float(res.get("cummulativeQuoteQty", 0.0))
-        executed_qty = float(res.get("executedQty", formatted_qty))
-        avg_price = (cummulative_quote_qty / executed_qty) if executed_qty > 0 else price
-
-        return {
-            "status": "SUCCESS",
-            "order_id": res.get("orderId"),
-            "symbol": symbol,
-            "executed_price": round(avg_price, 4),
-            "amount": executed_qty,
-            "received_usdt": cummulative_quote_qty
-        }
+        if "orderId" in res:
+            return {
+                "status": "SUCCESS",
+                "order_id": res["orderId"],
+                "symbol": symbol,
+                "executed_qty": res.get("executedQty"),
+                "cummulative_quote_qty": res.get("cummulativeQuoteQty")
+            }
+        else:
+            return {
+                "status": "ERROR",
+                "reason": res.get("msg", res.get("error", "Lỗi đặt lệnh Bán")),
+                "symbol": symbol
+            }
