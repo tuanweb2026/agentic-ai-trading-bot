@@ -1,4 +1,4 @@
-// Agentic AI Trading Dashboard - Institutional Capital Recovery Architecture (R:R = 2:1, Cooldown 15m, Max 2 Positions)
+// Agentic AI Trading Dashboard - Client Application Logic (Clean Dust Filter >= $15 USD & Enable Fresh $40 USD Spot Buys)
 
 class TradingDashboard {
     constructor() {
@@ -6,7 +6,7 @@ class TradingDashboard {
             initialBalance: 395.36,
             cash: 303.61,
             totalPortfolioUsd: 395.36,
-            peakValue: 432.47, // Mốc đỉnh ban đầu để tính điểm phục hồi về $432
+            peakValue: 432.47,
             positions: [],
             tradeHistory: []
         };
@@ -18,6 +18,9 @@ class TradingDashboard {
         this.takeProfitTargetUsd = 1.20; // Lợi nhuận kỳ vọng +$1.20 USD / lệnh (2.8%)
         this.stopLossTargetUsd = 0.60;   // Rủi ro tối đa -$0.60 USD / lệnh (1.4%)
         this.maxConcurrentPositions = 2; // Tối đa 2 vị thế mở cùng lúc
+        
+        // Mốc lọc vảy coin lẻ (Dust Minimum): Phải lớn hơn $15.00 USD mới tính là Vị thế đang giữ
+        this.minPositionValueUsd = 15.00;
 
         this.sessionStartBalance = 395.36;
         this.sessionStartTime = new Date().toLocaleTimeString();
@@ -40,9 +43,9 @@ class TradingDashboard {
         };
 
         this.pods = [
-            { id: "Pod-01-RubberBand-BTC", symbol: "BTC/USDT", strategy: "Spot Mean Reversion", sharpe: 1.25, signal: "NEUTRAL", reason: "[SPOT] Z-score bình thường. Đang đứng ngoài bảo toàn vốn." },
-            { id: "Pod-02-Trend-ETH", symbol: "ETH/USDT", strategy: "Spot Trend", sharpe: 1.08, signal: "SELL", reason: "[SPOT] Z-score = 2.15 (Quá mua). Đề xuất BÁN chốt lời Spot ra USDT." },
-            { id: "Pod-03-RubberBand-SOL", symbol: "SOL/USDT", strategy: "Spot Mean Reversion", sharpe: 1.32, signal: "BUY", reason: "[SPOT] Sợi dây thun nén cực đại. Đề xuất MUA tích sản." },
+            { id: "Pod-01-RubberBand-BTC", symbol: "BTC/USDT", strategy: "Spot Mean Reversion", sharpe: 1.25, signal: "NEUTRAL", reason: "[SPOT] Z-score bình thường. Đang chờ điểm mua MỚI $40 USD." },
+            { id: "Pod-02-Trend-ETH", symbol: "ETH/USDT", strategy: "Spot Trend", sharpe: 1.08, signal: "SELL", reason: "[SPOT] Z-score = 2.15 (Quá mua). Đề xuất BÁN ra USDT." },
+            { id: "Pod-03-RubberBand-SOL", symbol: "SOL/USDT", strategy: "Spot Mean Reversion", sharpe: 1.32, signal: "BUY", reason: "[SPOT] Sợi dây thun nén cực đại. KÍCH HOẠT MUA MỚI $40 USD." },
             { id: "Pod-04-Trend-BNB", symbol: "BNB/USDT", strategy: "Spot Trend", sharpe: 1.15, signal: "NEUTRAL", reason: "[SPOT] Thị trường tích lũy." },
             { id: "Pod-05-RubberBand-XRP", symbol: "XRP/USDT", strategy: "Spot Mean Reversion", sharpe: 1.28, signal: "SELL", reason: "[SPOT] Quá mua. Đề xuất BÁN chốt Spot về USDT." },
             { id: "Pod-06-Trend-ADA", symbol: "ADA/USDT", strategy: "Spot Trend", sharpe: 1.10, signal: "NEUTRAL", reason: "[SPOT] Đứng ngoài quan sát." },
@@ -128,7 +131,7 @@ class TradingDashboard {
                     return;
                 }
 
-                // Lọc vảy dust < $5.00 USD
+                // 🎯 LỌC SẠCH VẢY COIN LẺ: Chỉ tính là Vị Thế Đang Giữ khi giá trị >= $15.00 USD
                 const heldBalances = data.balances || {};
                 const syncedPositions = [];
 
@@ -139,7 +142,8 @@ class TradingDashboard {
                         const currentPrice = this.marketData[symbol] ? this.marketData[symbol].price : 1.0;
                         const usdValue = amount * currentPrice;
 
-                        if (usdValue >= 5.0) {
+                        // Chỉ chấp nhận các vị thế có giá trị thực sự lớn hơn hoặc bằng $15.00 USD
+                        if (usdValue >= 15.0) {
                             const existingPos = this.portfolio.positions.find(p => p.symbol === symbol);
                             const entryPrice = existingPos ? existingPos.entryPrice : currentPrice;
 
@@ -213,9 +217,9 @@ class TradingDashboard {
             if (btn) btn.className = "btn btn-secondary";
             if (lbl) lbl.innerText = "Tạm Dừng AI";
             if (pulse) pulse.className = "status-indicator live";
-            if (statusTxt) statusTxt.innerText = `🔴 AI ĐANG KÍCH HOẠT CHIẾN LƯỢC PHỤC HỒI VỐN (TP +$1.20 USD | R:R = 2:1)`;
+            if (statusTxt) statusTxt.innerText = `🔴 AI ĐANG KÍCH HOẠT CHIẾN LƯỢC MUA MỚI $40 USD (ĐÃ LỌC SẠCH DUST LẺ < $15 USD)`;
 
-            this.addLog("DANGER", `🚀 BẮT ĐẦU CHIẾN LƯỢC PHỤC HỒI VỐN $432 USD! Đã cài Cooldown 15m, Tối đa 2 lệnh & Chốt lời ròng +$1.20 USD! Mốc ví ban đầu: $${this.sessionStartBalance.toFixed(2)} USD [${this.sessionStartTime}]`);
+            this.addLog("DANGER", `🚀 BẮT ĐẦU KÍCH HOẠT MUA MỚI $40 USD! Đã lọc sạch các vảy lẻ < $15 USD để giải phóng đường MUA MỚI! Mốc ví: $${this.sessionStartBalance.toFixed(2)} USD`);
             
             this.runHeartbeatCycle();
             this.startTimer();
@@ -282,27 +286,27 @@ class TradingDashboard {
 
         this.checkAutoTakeProfitAndStopLoss();
 
-        // Evaluate 10 Spot Pods (SIẾT CHẶT BỘ LỌC Z-SCORE < -2.5 & RSI < 25)
+        // Evaluate 10 Spot Pods
         this.pods.forEach(pod => {
             const symData = this.marketData[pod.symbol];
             if (!symData) return;
 
             if (pod.strategy.includes("Mean Reversion")) {
-                if (symData.zScore < -2.5 && symData.rsi < 25) {
+                if (symData.zScore < -2.0 && symData.rsi < 35) {
                     pod.signal = "BUY";
-                    pod.reason = `🎯 [CỰC ĐẠI NÉN] Sợi dây thun nén giá cực đại (Z-Score = ${symData.zScore.toFixed(2)}, RSI = ${symData.rsi.toFixed(1)}). Tín hiệu Mua chuẩn xác cao.`;
-                } else if (symData.zScore > 2.5 && symData.rsi > 75) {
+                    pod.reason = `🎯 [TÍN HIỆU MUA MỚI] Sợi dây thun nén giá (Z-Score = ${symData.zScore.toFixed(2)}, RSI = ${symData.rsi.toFixed(1)}). KÍCH HOẠT MUA MỚI $40 USD SPOT.`;
+                } else if (symData.zScore > 2.0 && symData.rsi > 65) {
                     pod.signal = "SELL";
-                    pod.reason = `🎯 [CỰC ĐẠI BÁN] Quá mua cực đại (Z-Score = ${symData.zScore.toFixed(2)}). KÍCH HOẠT BÁN CHỐT VỀ USDT.`;
+                    pod.reason = `🎯 [CỰC ĐẠI BÁN] Quá mua (Z-Score = ${symData.zScore.toFixed(2)}). KÍCH HOẠT BÁN CHỐT VỀ USDT.`;
                 } else {
                     pod.signal = "NEUTRAL";
-                    pod.reason = `[BẢO TOÀN VỐN] Z-score = ${symData.zScore.toFixed(2)} chưa chạm mốc cực đại. Đứng ngoài an toàn.`;
+                    pod.reason = `[BẢO TOÀN VỐN] Z-score = ${symData.zScore.toFixed(2)} bình thường. Đứng ngoài an toàn.`;
                 }
             } else { // Spot Trend
-                if (symData.price > symData.ema_20 && symData.macd > 2.0) {
+                if (symData.price > symData.ema_20 && symData.macd > 1.0) {
                     pod.signal = "BUY";
-                    pod.reason = `[SPOT TREND] Bứt phá xu hướng mạnh EMA20. Tín hiệu Mua theo xu hướng.`;
-                } else if (symData.price < symData.ema_20 && symData.macd < -2.0) {
+                    pod.reason = `[SPOT TREND] Bứt phá xu hướng EMA20. Tín hiệu MUA MỚI $40 USD SPOT.`;
+                } else if (symData.price < symData.ema_20 && symData.macd < -1.0) {
                     pod.signal = "SELL";
                     pod.reason = `[SPOT TREND] Phá vỡ hỗ trợ. Đề xuất BÁN.`;
                 } else {
@@ -312,7 +316,7 @@ class TradingDashboard {
             }
         });
 
-        // Live Execution ($40.00 USD per trade) Với COOLDOWN 15 PHÚT & GIỚI HẠN TỐI ĐA 2 VỊ THẾ
+        // Live Execution ($40.00 USD per trade) Với KHÓA VẢY LẺ & MUA MỚI THẬT ĐỦ $40 USD
         const now = Date.now();
         let executedAny = false;
 
@@ -327,6 +331,8 @@ class TradingDashboard {
                 if (pod.sharpe >= 1.0) {
                     const price = this.marketData[pod.symbol] ? this.marketData[pod.symbol].price : 1.0;
                     const orderValueUsd = 40.00;
+                    
+                    // CHỈ COI LÀ EXISTING NẾU VỊ THẾ CÓ GIÁ TRỊ >= $15.00 USD
                     const existing = this.portfolio.positions.find(p => p.symbol === pod.symbol);
 
                     // 🔒 GIỚI HẠN TỐI ĐA 2 VỊ THẾ MỞ CÙNG LÚC
@@ -353,7 +359,7 @@ class TradingDashboard {
         }
 
         if (!executedAny && this.portfolio.positions.length === 0) {
-            this.addLog("INFO", `🛡️ [Phục Hồi Vốn] Đang bảo toàn tài sản $${totalVal.toFixed(2)} USD. Chờ điểm mua chuẩn xác Z-Score < -2.5.`);
+            this.addLog("INFO", `🛡️ [Phục Hồi Vốn] Sẵn sàng mua mới $40.00 USD khi Z-Score nén (Ví $${totalVal.toFixed(2)} USD).`);
         }
 
         this.renderAll();
@@ -388,8 +394,8 @@ class TradingDashboard {
             data.ema_20 = data.price * 0.99;
             data.macd = (Math.random() - 0.4) * 3;
 
-            if (data.zScore > 2.5) data.strainStatus = "OVERSTRETCHED_UP (Căng quá mua cực đại)";
-            else if (data.zScore < -2.5) data.strainStatus = "OVERSTRETCHED_DOWN (Nén quá bán cực đại)";
+            if (data.zScore > 2.0) data.strainStatus = "OVERSTRETCHED_UP (Căng quá mua)";
+            else if (data.zScore < -2.0) data.strainStatus = "OVERSTRETCHED_DOWN (Nén quá bán)";
             else data.strainStatus = "NORMAL (Bình thường)";
         }
     }
@@ -409,7 +415,7 @@ class TradingDashboard {
             const result = await response.json();
 
             if (result.status === "SUCCESS") {
-                this.addLog("SUCCESS", `✅ [MUA THẬT SPOT CỤC ĐẠI] Đã MUA SPOT THẬT ${symbol} ($40.00 USDT) | Order ID: ${result.order_id || 'OK'}`);
+                this.addLog("SUCCESS", `✅ [MUA THẬT SPOT ĐỦ $40 USD] Đã MUA SPOT THẬT ${symbol} ($40.00 USDT) | Order ID: ${result.order_id || 'OK'}`);
             } else {
                 this.addLog("WARNING", `⚠️ [GHI NHẬN LỆNH MUA] Mua Spot ${symbol}: ${result.reason || 'Lỗi API Binance'}.`);
             }
@@ -484,7 +490,6 @@ class TradingDashboard {
         const sessionPnlUsd = totalVal - baseBal;
         const sessionPnlPct = baseBal > 0 ? ((sessionPnlUsd / baseBal) * 100) : 0.0;
 
-        // Tính số tiền cần phục hồi về mốc gốc $432.47 USD
         const neededRecoveryUsd = Math.max(0, 432.47 - totalVal);
 
         const valPortfolio = document.getElementById('valPortfolio');
@@ -577,7 +582,7 @@ class TradingDashboard {
         if (!tbody) return;
         tbody.innerHTML = '';
         if (this.portfolio.positions.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" class="text-center empty-msg">Chưa có vị thế Spot nào đang mở. Khởi chạy AI để Mua mới!</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center empty-msg">Chưa có vị thế Spot chuẩn ($40 USD) nào đang mở (Đã lọc sạch dust lẻ < $15 USD). Khởi chạy AI để Mua mới!</td></tr>`;
             return;
         }
 
@@ -633,7 +638,7 @@ class TradingDashboard {
     }
 
     closeModal() {
-        const modal = document.getElementById('modalTradeModal');
+        const modal = document.getElementById('manualTradeModal');
         if (modal) modal.classList.remove('show');
     }
 
