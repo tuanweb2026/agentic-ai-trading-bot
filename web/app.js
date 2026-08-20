@@ -17,7 +17,7 @@ class TradingDashboard {
         // 🚀 Cấu hình Chiến lược Phục hồi Vốn Nhanh $80.00 USD
         this.singleOrderUsd = 80.00;
         this.takeProfitTargetUsd = 2.20; // Lợi nhuận ròng kỳ vọng +$2.20 USD / lệnh (2.8%)
-        this.stopLossTargetUsd = 1.10;   # Rủi ro tối đa -$1.10 USD / lệnh (1.4%)
+        this.stopLossTargetUsd = 1.10;   // Rủi ro tối đa -$1.10 USD / lệnh (1.4%)
         this.maxConcurrentPositions = 2; // Tối đa 2 vị thế mở cùng lúc ($160 USD vốn)
         
         // Mốc lọc vảy coin lẻ (Dust Minimum): Phải lớn hơn $15.00 USD mới tính là Vị thế đang giữ
