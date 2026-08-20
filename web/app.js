@@ -621,11 +621,24 @@ class TradingDashboard {
     addLog(type, message) {
         const feed = document.getElementById('logFeed');
         if (!feed) return;
+
+        // Tránh ghi log trùng lặp liên tục để giữ màn hình sạch sẽ
+        if (feed.firstChild && feed.firstChild.querySelector('.log-msg')) {
+            const lastMsg = feed.firstChild.querySelector('.log-msg').innerText;
+            if (lastMsg === message) return;
+        }
+
         const div = document.createElement('div');
         div.className = `log-item ${type.toLowerCase()}`;
         const timeStr = new Date().toLocaleTimeString();
         div.innerHTML = `<span class="log-time">[${timeStr}]</span> <span class="log-msg">${message}</span>`;
         feed.prepend(div);
+
+        // 🚀 TỰ ĐỘNG GIỚI HẠN TỐI ĐA 35 DÒNG LOG MỚI NHẤT DE-CLUTTER DOM TREE
+        // Giúp trình duyệt chạy cực kỳ nhẹ, 0% giật lag, tiêu thụ RAM/CPU siêu thấp khi treo 24h
+        while (feed.children.length > 35) {
+            feed.removeChild(feed.lastChild);
+        }
     }
 
     renderAll() {
