@@ -1,11 +1,11 @@
-// Agentic AI Trading Dashboard v4.0.4 - Strict Dynamic Entry Value Matching & Pure Binance Orderbook Verification
+// Agentic AI Trading Dashboard v4.0.5 - True Coin Price Trailing Stop (0.8% Price Callback) & Live AI Execution
 
 class TradingDashboard {
     constructor() {
         this.portfolio = {
             initialBalance: 395.36,
-            cash: 316.31,
-            totalPortfolioUsd: 401.13,
+            cash: 224.55,
+            totalPortfolioUsd: 411.81,
             peakValue: 432.47,
             positions: [],
             tradeHistory: []
@@ -20,7 +20,7 @@ class TradingDashboard {
         this.stopLossTargetUsd = 1.10;   // Rủi ro tối đa -$1.10 USD / lệnh (1.4%)
         this.maxConcurrentPositions = 3; // Tối đa 3 vị thế mở cùng lúc ($240 USD vốn)
         
-        // 📈 Trailing Stop Spot: Khoảng lùi 0.8% bám dốc nến bay
+        // 📈 Trailing Stop Spot: Khoảng lùi 0.8% theo Giá Coin (Coin Price Callback)
         this.enableTrailingStop = true;
         this.trailingStopCallbackPct = 0.8;
         this.trailingHighWaterMarks = {}; // Đỉnh PnL cao nhất đạt được của từng vị thế
@@ -28,7 +28,7 @@ class TradingDashboard {
         // Mốc lọc vảy coin lẻ (Dust Minimum): Phải lớn hơn $15.00 USD mới tính là Vị thế đang giữ
         this.minPositionValueUsd = 15.00;
 
-        this.sessionStartBalance = 401.13;
+        this.sessionStartBalance = 411.81;
         this.sessionStartTime = new Date().toLocaleTimeString();
 
         // Bảng Cooldown 15 phút (900,000 ms)
@@ -37,15 +37,15 @@ class TradingDashboard {
 
         // Giá thị trường THẬT từ Binance API
         this.marketData = {
-            "BTC/USDT": { price: 74348.0, rsi: 48.5, zScore: 0.45, macdHist: 2.5, strainStatus: "NORMAL" },
-            "ETH/USDT": { price: 2339.9, rsi: 72.4, zScore: 2.15, macdHist: 1.2, strainStatus: "OVERSTRETCHED_UP" },
-            "SOL/USDT": { price: 88.96, rsi: 28.1, zScore: -2.35, macdHist: 0.8, strainStatus: "OVERSTRETCHED_DOWN" },
-            "BNB/USDT": { price: 657.6, rsi: 52.0, zScore: 0.65, macdHist: 0.5, strainStatus: "NORMAL" },
+            "BTC/USDT": { price: 78505.0, rsi: 48.5, zScore: 0.45, macdHist: 2.5, strainStatus: "NORMAL" },
+            "ETH/USDT": { price: 2535.9, rsi: 72.4, zScore: 2.15, macdHist: 1.2, strainStatus: "OVERSTRETCHED_UP" },
+            "SOL/USDT": { price: 93.83, rsi: 28.1, zScore: -2.35, macdHist: 0.8, strainStatus: "OVERSTRETCHED_DOWN" },
+            "BNB/USDT": { price: 688.8, rsi: 52.0, zScore: 0.65, macdHist: 0.5, strainStatus: "NORMAL" },
             "XRP/USDT": { price: 0.58, rsi: 76.2, zScore: 2.40, macdHist: -0.3, strainStatus: "OVERSTRETCHED_UP" },
-            "ADA/USDT": { price: 0.205, rsi: 26.5, zScore: -2.10, macdHist: 0.4, strainStatus: "OVERSTRETCHED_DOWN" },
-            "AVAX/USDT": { price: 7.24, rsi: 58.0, zScore: 0.90, macdHist: 0.1, strainStatus: "NORMAL" },
-            "NEAR/USDT": { price: 1.77, rsi: 44.0, zScore: -0.55, macdHist: -0.2, strainStatus: "NORMAL" },
-            "LINK/USDT": { price: 10.90, rsi: 68.0, zScore: 1.85, macdHist: 0.9, strainStatus: "NORMAL" },
+            "ADA/USDT": { price: 0.228, rsi: 26.5, zScore: -2.10, macdHist: 0.4, strainStatus: "OVERSTRETCHED_DOWN" },
+            "AVAX/USDT": { price: 7.82, rsi: 58.0, zScore: 0.90, macdHist: 0.1, strainStatus: "NORMAL" },
+            "NEAR/USDT": { price: 1.97, rsi: 44.0, zScore: -0.55, macdHist: -0.2, strainStatus: "NORMAL" },
+            "LINK/USDT": { price: 12.28, rsi: 68.0, zScore: 1.85, macdHist: 0.9, strainStatus: "NORMAL" },
             "DOT/USDT": { price: 6.45, rsi: 54.0, zScore: 0.85, macdHist: 0.2, strainStatus: "NORMAL" }
         };
 
@@ -70,7 +70,6 @@ class TradingDashboard {
         this.bindEvents();
         this.syncRealBinanceBalance();
 
-        // TỰ ĐỘNG KÍCH HOẠT NHỊP TIM ĐỒNG HỒ 30S NGAY KHI NẠP TRANG
         this.startTimer();
     }
 
@@ -128,7 +127,7 @@ class TradingDashboard {
             const data = await response.json();
             if (data.success) {
                 this.portfolio.cash = data.usdt_free;
-                const totalUsd = data.total_portfolio_usd > 0 ? data.total_portfolio_usd : 401.13;
+                const totalUsd = data.total_portfolio_usd > 0 ? data.total_portfolio_usd : 411.81;
                 this.portfolio.totalPortfolioUsd = totalUsd;
                 this.portfolio.initialBalance = totalUsd;
 
@@ -169,11 +168,9 @@ class TradingDashboard {
                         const livePrice = realPrices[coin] || (this.marketData[symbol] ? this.marketData[symbol].price : 1.0);
                         const usdValue = usdValues[coin] || (amount * livePrice);
 
-                        // CHỈ CHẤP NHẬN CÁC VỊ THẾ CÓ GIÁ TRỊ THỰC TẾ LỚN HƠN $15.00 USD
                         if (usdValue >= 15.0) {
                             const existingPos = this.portfolio.positions.find(p => p.symbol === symbol);
 
-                            // Tính toán đúng giá trị mua ban đầu Dynamic Size ($100 cho BTC/ETH, $80 cho Altcoins)
                             const dynamicBase = this.calculateDynamicOrderSize(symbol);
                             let entryValueUsd = dynamicBase;
                             let entryPrice = livePrice;
@@ -261,7 +258,7 @@ class TradingDashboard {
 
         if (this.aiRunning) {
             const totalVal = this.getPortfolioValue();
-            this.sessionStartBalance = totalVal > 0 ? totalVal : 401.13;
+            this.sessionStartBalance = totalVal > 0 ? totalVal : 411.81;
             this.sessionStartTime = new Date().toLocaleTimeString();
 
             if (btn) btn.className = "btn btn-secondary";
@@ -425,6 +422,7 @@ class TradingDashboard {
         this.renderAll();
     }
 
+    // 📈 TRAILING STOP SPOT: KHOẢNG LÙI 0.8% THEO GIÁ COIN (POSITION VALUE)
     async checkAutoTakeProfitAndStopLoss() {
         if (!this.aiRunning) return;
 
@@ -436,13 +434,20 @@ class TradingDashboard {
             const pnlAmt = pos.realPnl !== undefined ? pos.realPnl : ((pos.currentUsdValue || 80.0) - (pos.entryValueUsd || 80.0));
             const maxPnl = pos.maxPnlReached !== undefined ? pos.maxPnlReached : pnlAmt;
 
+            // 1. Cắt lỗ an toàn khi PnL <= -$1.10 USD
             if (pnlAmt <= -1.10) {
                 await this.closePosition(pos.symbol);
-            } else if (maxPnl >= 2.20) {
-                const pullbackAmt = maxPnl * (this.trailingStopCallbackPct / 100.0);
-                const trailingStopPnlTarget = maxPnl - pullbackAmt;
+            } 
+            // 2. Trailing Stop Spot: Khi PnL đỉnh cao nhất đã vượt mốc +$2.20 USD
+            else if (maxPnl >= 2.20) {
+                // Khoảng lùi 0.8% theo Giá trị ví coin (Position Value): 0.8% của ~$83.40 USD = ~$0.67 USD
+                const posValueUsd = pos.currentUsdValue || 80.0;
+                const pullbackAmt = posValueUsd * (this.trailingStopCallbackPct / 100.0); // ~$0.67 USD
+                
+                const trailingStopPnlTarget = maxPnl - pullbackAmt; // +$3.40 - $0.67 = +$2.73 USD
 
-                if (pnlAmt <= trailingStopPnlTarget || pnlAmt >= 3.50) {
+                // Nếu PnL hiện tại tụt sụt lùi vượt qua mốc lùi 0.8% giá coin (PnL <= +$2.73 USD)
+                if (pnlAmt <= trailingStopPnlTarget || pnlAmt >= 5.00) {
                     await this.closePosition(pos.symbol);
                 }
             }
@@ -509,7 +514,6 @@ class TradingDashboard {
 
             const pnlStr = pnl >= 0 ? `+$${pnl.toFixed(2)}` : `-$${Math.abs(pnl).toFixed(2)}`;
 
-            // 🎯 CHỈ IN LOG THÀNH CÔNG KHI CÓ ORDER ID BÁN KHỚP LỆNH THẬT TỪ BINANCE API
             if (result.status === "SUCCESS" && result.order_id) {
                 this.addLog("SUCCESS", `🎯 [BÁN CHỐT SPOT THẬT BINANCE] Đã bán chốt Spot ${pos.symbol} thu tiền về ví Binance USDT | PnL: ${pnlStr} | Order ID: ${result.order_id}`);
             } else if (result.reason && !result.reason.includes("làm tròn bằng 0") && !result.reason.includes("insufficient")) {
@@ -521,14 +525,14 @@ class TradingDashboard {
 
     getPortfolioValue() {
         const total = (this.portfolio.totalPortfolioUsd || this.portfolio.cash);
-        return total > 0 ? total : 401.13;
+        return total > 0 ? total : 411.81;
     }
 
     updatePortfolioMetrics() {
         const totalVal = this.getPortfolioValue();
         if (totalVal > this.portfolio.peakValue) this.portfolio.peakValue = totalVal;
 
-        const baseBal = this.sessionStartBalance !== null ? this.sessionStartBalance : 401.13;
+        const baseBal = this.sessionStartBalance !== null ? this.sessionStartBalance : 411.81;
         const sessionPnlUsd = totalVal - baseBal;
         const sessionPnlPct = baseBal > 0 ? ((sessionPnlUsd / baseBal) * 100) : 0.0;
 
