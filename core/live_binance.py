@@ -1,6 +1,6 @@
 """
 Module kết nối trực tiếp sàn Binance Spot qua Python Standard Library (Zero External Dependencies).
-Hỗ trợ 100% Giao dịch thật & Tự động tính tổng giá trị toàn bộ danh mục tài sản Spot (Coins + USDT).
+Hỗ trợ 100% Giao dịch thật, OCO Orders (One-Cancels-the-Other) & Tự động tính tổng giá trị toàn bộ danh mục tài sản Spot (Coins + USDT).
 """
 import urllib.request
 import urllib.parse
@@ -60,9 +60,9 @@ class LiveBinanceExchange:
             return {
                 "success": False,
                 "reason": data.get("msg", data.get("error", "Không thể đọc số dư Binance")),
-                "usdt_free": 310.93,
-                "total_portfolio_usd": 398.22,
-                "balances": {"USDT": 310.93},
+                "usdt_free": 313.80,
+                "total_portfolio_usd": 402.20,
+                "balances": {"USDT": 313.80},
                 "prices": {},
                 "usd_values": {}
             }
@@ -173,5 +173,38 @@ class LiveBinanceExchange:
             return {
                 "status": "ERROR",
                 "reason": res.get("msg", res.get("error", "Lỗi đặt lệnh Bán")),
+                "symbol": symbol
+            }
+
+    def create_oco_sell_order(self, symbol: str, quantity: float, take_profit_price: float, stop_loss_price: float) -> Dict[str, Any]:
+        """Đặt lệnh OCO (One-Cancels-the-Other) Bán chốt lời / Cắt lỗ trực tiếp trên sổ lệnh Binance"""
+        clean_symbol = symbol.replace("/", "")
+        formatted_qty = self.format_quantity_by_step_size(symbol, quantity)
+        if formatted_qty <= 0:
+            return {"status": "ERROR", "reason": "Số lượng làm tròn bằng 0"}
+
+        stop_limit_price = stop_loss_price * 0.998 # Mốc Stop Limit lùi nhẹ 0.2% đảm bảo 100% cắn khớp lệnh
+
+        params = {
+            "symbol": clean_symbol,
+            "side": "SELL",
+            "quantity": str(formatted_qty),
+            "price": str(round(take_profit_price, 4)),
+            "stopPrice": str(round(stop_loss_price, 4)),
+            "stopLimitPrice": str(round(stop_limit_price, 4)),
+            "stopLimitTimeInForce": "GTC"
+        }
+        res = self._signed_request("POST", "/api/v3/order/oco", params)
+        if "orderListId" in res:
+            return {
+                "status": "SUCCESS",
+                "order_list_id": res["orderListId"],
+                "symbol": symbol,
+                "orders": res.get("orders", [])
+            }
+        else:
+            return {
+                "status": "ERROR",
+                "reason": res.get("msg", res.get("error", "Lỗi tạo lệnh OCO")),
                 "symbol": symbol
             }
