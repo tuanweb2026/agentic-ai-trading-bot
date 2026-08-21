@@ -60,9 +60,9 @@ class LiveBinanceExchange:
             return {
                 "success": False,
                 "reason": data.get("msg", data.get("error", "Không thể đọc số dư Binance")),
-                "usdt_free": 313.80,
-                "total_portfolio_usd": 402.20,
-                "balances": {"USDT": 313.80},
+                "usdt_free": 316.32,
+                "total_portfolio_usd": 402.13,
+                "balances": {"USDT": 316.32},
                 "prices": {},
                 "usd_values": {}
             }
@@ -80,7 +80,7 @@ class LiveBinanceExchange:
             locked = float(b['locked'])
             total_coin = free + locked
             if total_coin > 0:
-                held_balances[coin] = total_coin
+                held_balances[coin] = free # Sử dụng lượng khả dụng free để đặt lệnh Bán chính xác
                 if coin == 'USDT':
                     usdt_free = free
                     total_usd += total_coin
@@ -147,9 +147,16 @@ class LiveBinanceExchange:
             }
 
     def create_spot_sell_order(self, symbol: str, quantity: float) -> Dict[str, Any]:
-        """Đặt lệnh Bán Market Spot trên Binance với quantity làm tròn theo stepSize"""
+        """Đặt lệnh Bán Market Spot trên Binance với số lượng khả dụng thực tế"""
         clean_symbol = symbol.replace("/", "")
-        formatted_qty = self.format_quantity_by_step_size(symbol, quantity)
+        coin = clean_symbol.replace("USDT", "").replace("BUSD", "")
+        
+        # Tự động đồng bộ lại lượng coin khả dụng free thực tế để tránh lỗi Insufficient Balance
+        bal_data = self.fetch_real_balance()
+        free_available = bal_data.get("balances", {}).get(coin, quantity)
+        
+        actual_qty = min(quantity, free_available) if free_available > 0 else quantity
+        formatted_qty = self.format_quantity_by_step_size(symbol, actual_qty)
         
         if formatted_qty <= 0:
             return {"status": "ERROR", "reason": "Số lượng làm tròn bằng 0", "symbol": symbol}
