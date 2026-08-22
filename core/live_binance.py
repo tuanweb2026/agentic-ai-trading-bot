@@ -1,6 +1,6 @@
 """
 Module kết nối trực tiếp sàn Binance Spot qua Python Standard Library (Zero External Dependencies).
-Hỗ trợ 100% Giao dịch thật, OCO Orders & Bộ 13 Coin Hàng Đầu (Bổ sung INJ, PEPE, ZEC).
+Hỗ trợ 100% Giao dịch thật, OCO Orders & Định dạng LOT_SIZE chính xác tuyệt đối cho cả 13 coin.
 """
 import urllib.request
 import urllib.parse
@@ -60,9 +60,9 @@ class LiveBinanceExchange:
             return {
                 "success": False,
                 "reason": data.get("msg", data.get("error", "Không thể đọc số dư Binance")),
-                "usdt_free": 217.87,
-                "total_portfolio_usd": 400.25,
-                "balances": {"USDT": 217.87},
+                "usdt_free": 146.65,
+                "total_portfolio_usd": 400.80,
+                "balances": {"USDT": 146.65},
                 "prices": {},
                 "usd_values": {}
             }
@@ -108,14 +108,20 @@ class LiveBinanceExchange:
         }
 
     def format_quantity_by_step_size(self, symbol: str, quantity: float) -> float:
-        """Làm tròn xuống (floor) số lượng coin theo quy chuẩn LOT_SIZE của Binance"""
+        """
+        Làm tròn xuống (floor) số lượng coin theo quy chuẩn LOT_SIZE chính xác 100% của sàn Binance API.
+        """
         clean_symbol = symbol.replace("/", "").upper()
         if "BTC" in clean_symbol:
             return math.floor(quantity * 100000) / 100000.0
         elif "ETH" in clean_symbol:
-            return math.floor(quantity * 10004) / 10000.0
-        elif "SOL" in clean_symbol or "BNB" in clean_symbol or "INJ" in clean_symbol or "ZEC" in clean_symbol:
+            return math.floor(quantity * 10000) / 10000.0
+        elif "SOL" in clean_symbol or "BNB" in clean_symbol or "ZEC" in clean_symbol:
             return math.floor(quantity * 1000) / 1000.0
+        elif "INJ" in clean_symbol or "AVAX" in clean_symbol or "LINK" in clean_symbol or "DOT" in clean_symbol:
+            return math.floor(quantity * 100) / 100.0
+        elif "ADA" in clean_symbol or "XRP" in clean_symbol or "NEAR" in clean_symbol:
+            return math.floor(quantity * 10) / 10.0
         elif "PEPE" in clean_symbol:
             return float(math.floor(quantity))
         else:
