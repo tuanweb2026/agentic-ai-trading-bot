@@ -1,4 +1,4 @@
-// Agentic AI Trading Dashboard v5.4 - Pure Core 10-Coin Portfolio (Proven 100% Win Rate Assets Only)
+// Agentic AI Trading Dashboard v5.5 - Real PnL Order Payload Sync & Auto-Update Engine
 
 class TradingDashboard {
     constructor() {
@@ -14,7 +14,7 @@ class TradingDashboard {
         this.targetCapitalRecoveryUsd = 432.47;
         this.minPortfolioStopThreshold = 350.00;
         
-        // 🚀 Cấu hình Chiến lược v5.4 Pure Core 10-Coin Engine
+        // 🚀 Cấu hình Chiến lược v5.5 Pure Core 10-Coin Engine
         this.baseOrderUsd = 80.00;
         this.takeProfitTargetUsd = 2.20; // Mốc kích hoạt chốt lời ròng ban đầu (+2.8%)
         this.stopLossTargetUsd = 1.10;   // Rủi ro tối đa -$1.10 USD / lệnh (1.4%)
@@ -62,7 +62,7 @@ class TradingDashboard {
             { id: "Pod-10-Trend-DOT", symbol: "DOT/USDT", strategy: "Spot Trend", sharpe: 1.12, signal: "NEUTRAL", reason: "[SPOT CORE] Xu hướng bình thường." }
         ];
 
-        // 🚀 TỰ ĐỘNG BẬT 100% AI TRADING NGAY KHI VÀO TRANG (KHÔNG CẦN BẤM NÚT KÍCH HOẠT)
+        // 🚀 TỰ ĐỘNG BẬT 100% AI TRADING NGAY KHI VÀO TRANG
         this.aiRunning = true;
         this.timerSeconds = 30;
         this.timerInterval = null;
@@ -89,7 +89,7 @@ class TradingDashboard {
         if (btn) btn.className = "btn btn-secondary";
         if (lbl) lbl.innerText = "Tạm Dừng AI";
         if (pulse) pulse.className = "status-indicator live";
-        if (statusTxt) statusTxt.innerText = `🔴 AI v5.4 PURE CORE ACTIVE (TẬP TRUNG 10 COIN AN TOÀN TRUYỀN THỐNG)`;
+        if (statusTxt) statusTxt.innerText = `🔴 AI v5.5 ACTIVE (TẬP TRUNG 10 COIN AN TOÀN TRUYỀN THỐNG)`;
     }
 
     bindEvents() {
@@ -390,9 +390,9 @@ class TradingDashboard {
             if (btn) btn.className = "btn btn-secondary";
             if (lbl) lbl.innerText = "Tạm Dừng AI";
             if (pulse) pulse.className = "status-indicator live";
-            if (statusTxt) statusTxt.innerText = `🔴 AI v5.4 PURE CORE ACTIVE (TẬP TRUNG 10 COIN AN TOÀN TRUYỀN THỐNG)`;
+            if (statusTxt) statusTxt.innerText = `🔴 AI v5.5 PURE CORE ACTIVE (TẬP TRUNG 10 COIN AN TOÀN TRUYỀN THỐNG)`;
 
-            this.addLog("DANGER", `🚀 BẮT ĐẦU V5.4 PURE CORE QUANT ENGINE! Tập trung 100% Bộ 10 Coin Core An Toàn (Win Rate 100%) + Cắt lỗ tự động mỗi 1s! Mốc vốn: $${this.sessionStartBalance.toFixed(2)} USD`);
+            this.addLog("DANGER", `🚀 BẮT ĐẦU V5.5 PURE CORE QUANT ENGINE! Tập trung 100% Bộ 10 Coin Core An Toàn (Win Rate 100%) + Cắt lỗ tự động mỗi 1s! Mốc vốn: $${this.sessionStartBalance.toFixed(2)} USD`);
             
             this.runHeartbeatCycle();
         } else {
@@ -474,7 +474,7 @@ class TradingDashboard {
             if (pod.strategy.includes("Mean Reversion")) {
                 if (symData.zScore < -2.0 && symData.rsi < 35 && symData.macdHist > 0) {
                     pod.signal = "BUY";
-                    pod.reason = `🎯 [XÁC NHẬN KÉP v5.4] Nén Dây Thun (Z=${symData.zScore.toFixed(2)}, RSI=${symData.rsi.toFixed(1)}) + MACD Histogram Dương (${symData.macdHist}). KÍCH HOẠT MUA SPOT ${pod.symbol}.`;
+                    pod.reason = `🎯 [XÁC NHẬN KÉP v5.5] Nén Dây Thun (Z=${symData.zScore.toFixed(2)}, RSI=${symData.rsi.toFixed(1)}) + MACD Histogram Dương (${symData.macdHist}). KÍCH HOẠT MUA SPOT ${pod.symbol}.`;
                 } else {
                     pod.signal = "NEUTRAL";
                     pod.reason = `[BẢO TOÀN VỐN] Z-score = ${symData.zScore.toFixed(2)} bình thường. Đứng ngoài an toàn.`;
@@ -482,7 +482,7 @@ class TradingDashboard {
             } else {
                 if (symData.price > (symData.ema_20 || symData.price * 0.99) && symData.macdHist > 0.5) {
                     pod.signal = "BUY";
-                    pod.reason = `[SPOT TREND v5.4] Bứt phá xu hướng EMA20 + MACD Dương mạnh. Tín hiệu MUA SPOT.`;
+                    pod.reason = `[SPOT TREND v5.5] Bứt phá xu hướng EMA20 + MACD Dương mạnh. Tín hiệu MUA SPOT.`;
                 } else {
                     pod.signal = "NEUTRAL";
                     pod.reason = `[BẢO TOÀN VỐN] Thị trường tích lũy an toàn.`;
@@ -523,7 +523,7 @@ class TradingDashboard {
 
                         if (!existing) {
                             this.lastOrderTimestamps[pod.symbol] = now;
-                            await this.executeOrder(pod.symbol, pod.id, "BUY", orderValueUsd, price, "Binance v5.4 Full Quant Execution");
+                            await this.executeOrder(pod.symbol, pod.id, "BUY", orderValueUsd, price, "Binance v5.5 Full Quant Execution");
                             executedAny = true;
                         }
                     }
@@ -582,7 +582,7 @@ class TradingDashboard {
             const result = await response.json();
 
             if (result.status === "SUCCESS") {
-                this.addLog("SUCCESS", `✅ [MUA SPOT THẬT v5.4] Đã MUA SPOT THẬT ${symbol} ($${amountUsd.toFixed(2)} USDT) | Order ID: ${result.order_id || 'OK'}`);
+                this.addLog("SUCCESS", `✅ [MUA SPOT THẬT v5.5] Đã MUA SPOT THẬT ${symbol} ($${amountUsd.toFixed(2)} USDT) | Order ID: ${result.order_id || 'OK'}`);
             } else {
                 this.addLog("WARNING", `⚠️ [GHI NHẬN LỆNH MUA] Mua Spot ${symbol}: ${result.reason || 'Lỗi API Binance'}.`);
             }
@@ -594,6 +594,7 @@ class TradingDashboard {
         this.updatePortfolioMetrics();
     }
 
+    // 🚀 BƯỚC SỬA SÂU CỦA v5.5: TRUYỀN CHÍNH XÁC PNL VÀ VỐN TRONG MỖI LẦN BÁN SPOT
     async closePosition(targetSymbolOrId) {
         const targetStr = String(targetSymbolOrId);
         
@@ -607,13 +608,20 @@ class TradingDashboard {
         if (idx !== -1) {
             const pos = this.portfolio.positions[idx];
             const pnl = pos.realPnl !== undefined ? pos.realPnl : 0.0;
+            const entryVal = pos.entryValueUsd || 80.00;
 
             let result = { status: "SKIPPED", reason: "" };
             try {
                 const response = await fetch('/api/execute-live-order', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'SELL', symbol: pos.symbol, quantity: pos.amount })
+                    body: JSON.stringify({ 
+                        action: 'SELL', 
+                        symbol: pos.symbol, 
+                        quantity: pos.amount,
+                        pnl_usd: pnl,
+                        amount_usd: entryVal
+                    })
                 });
                 if (response.ok) {
                     result = await response.json();
@@ -637,7 +645,7 @@ class TradingDashboard {
                         body: JSON.stringify({
                             symbol: pos.symbol,
                             side: 'SELL',
-                            amount_usd: pos.entryValueUsd || 80.00,
+                            amount_usd: entryVal,
                             pnl_usd: pnl,
                             order_id: result.order_id
                         })

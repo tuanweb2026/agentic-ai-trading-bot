@@ -1,197 +1,180 @@
-"""
-Module PnL Analytics & 60-Day Performance Tracker.
-Lưu trữ và phân tích dữ liệu PnL giao dịch hàng ngày (T2 - CN), 24h timeline, tổng kết tuần, tháng & 60 ngày.
-"""
-import os
 import json
+import os
 import time
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Dict, Any, List
 
 class PnLTracker:
-    def __init__(self, data_file: str = "data/trade_history.json"):
-        self.data_file = data_file
+    def __init__(self, data_file: str = None):
+        if not data_file:
+            data_file = os.path.join(os.path.dirname(__file__), "..", "data", "trade_history.json")
+        self.data_file = os.path.abspath(data_file)
         os.makedirs(os.path.dirname(self.data_file), exist_ok=True)
-        if not os.path.exists(self.data_file):
-            self._init_data_file()
+        self.trades = self._load_trades()
 
-    def _init_data_file(self):
-        """Khởi tạo file dữ liệu lịch sử giao dịch ban đầu với dữ liệu mẫu chuẩn"""
-        initial_trades = [
-            {
-                "order_id": "17610915144",
-                "symbol": "SOL/USDT",
-                "side": "SELL",
-                "amount_usd": 80.00,
-                "pnl_usd": 1.88,
-                "timestamp": int(time.time() - 86400 * 2),
-                "date_str": (datetime.now() - timedelta(days=2)).strftime("%Y-%m-%d"),
-                "hour": 15
-            },
-            {
-                "order_id": "8742823966",
-                "symbol": "ADA/USDT",
-                "side": "SELL",
-                "amount_usd": 80.00,
-                "pnl_usd": 1.04,
-                "timestamp": int(time.time() - 86400 * 2),
-                "date_str": (datetime.now() - timedelta(days=2)).strftime("%Y-%m-%d"),
-                "hour": 15
-            },
-            {
-                "order_id": "17617577413",
-                "symbol": "SOL/USDT",
-                "side": "SELL",
-                "amount_usd": 80.00,
-                "pnl_usd": 1.89,
-                "timestamp": int(time.time() - 86400),
-                "date_str": (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d"),
-                "hour": 9
-            }
-        ]
-        with open(self.data_file, 'w', encoding='utf-8') as f:
-            json.dump(initial_trades, f, indent=2, ensure_ascii=False)
+    def _load_trades(self) -> List[Dict[str, Any]]:
+        if os.path.exists(self.data_file):
+            try:
+                with open(self.data_file, "r", encoding="utf-8") as f:
+                    return json.load(f)
+            except Exception:
+                return []
+        return []
 
-    def load_trades(self) -> List[Dict[str, Any]]:
+    def _save_trades(self):
         try:
-            with open(self.data_file, 'r', encoding='utf-8') as f:
-                return json.load(f)
-        except Exception:
-            return []
+            with open(self.data_file, "w", encoding="utf-8") as f:
+                json.dump(self.trades, f, indent=2, ensure_ascii=False)
+        except Exception as e:
+            print("Error saving trades:", e)
 
-    def record_trade(self, symbol: str, side: str, amount_usd: float, pnl_usd: float, order_id: str = "") -> Dict[str, Any]:
-        """Ghi nhận một giao dịch mới thành công vào file lịch sử"""
-        trades = self.load_trades()
-        
-        # Tránh ghi trùng lặp theo Order ID
-        if order_id and any(t.get("order_id") == str(order_id) for t in trades):
-            return {"success": False, "reason": "Lệnh đã tồn tại trong lịch sử"}
+    def record_trade(self, symbol: str, side: str, amount_usd: float, pnl_usd: float, order_id: str) -> Dict[str, Any]:
+        """Ghi nhận lệnh giao dịch đã đóng. Nếu Order ID đã tồn tại với PnL=0, tự động cập nhật PnL thực tế."""
+        order_id_str = str(order_id)
+        if not order_id_str:
+            return {"success": False, "reason": "Order ID rỗng"}
+
+        # 🚀 KIỂM TRA XEM ORDER ID ĐÃ TỒN TẠI TRƯỚC ĐÓ CHƯA
+        for t in self.trades:
+            if str(t.get("order_id")) == order_id_str:
+                # Nếu lệnh trước đó lưu PnL = 0.0 mà bây giờ có PnL thực tế khác 0 -> CẬP NHẬT PNL THỰC TẾ!
+                if t.get("pnl_usd", 0.0) == 0.0 and pnl_usd != 0.0:
+                    t["pnl_usd"] = round(pnl_usd, 2)
+                    if amount_usd > 0:
+                        t["amount_usd"] = round(amount_usd, 2)
+                    self._save_trades()
+                    return {"success": True, "updated": True, "trade": t}
+                return {"success": False, "reason": "Lệnh đã tồn tại trong lịch sử"}
 
         now = datetime.now()
-        trade_entry = {
-            "order_id": str(order_id or int(time.time() * 1000)),
+        timestamp = int(now.timestamp())
+        date_str = now.strftime("%Y-%m-%d")
+        day_name = now.strftime("%A")
+        hour = now.hour
+
+        trade = {
+            "order_id": order_id_str,
             "symbol": symbol,
-            "side": side,
+            "side": side.upper(),
             "amount_usd": round(amount_usd, 2),
             "pnl_usd": round(pnl_usd, 2),
-            "timestamp": int(time.time()),
-            "date_str": now.strftime("%Y-%m-%d"),
-            "day_name": now.strftime("%A"), # Monday, Tuesday...
-            "hour": now.hour
+            "timestamp": timestamp,
+            "date_str": date_str,
+            "day_name": day_name,
+            "hour": hour
         }
-        
-        trades.append(trade_entry)
-        with open(self.data_file, 'w', encoding='utf-8') as f:
-            json.dump(trades, f, indent=2, ensure_ascii=False)
 
-        return {"success": True, "trade": trade_entry}
+        self.trades.append(trade)
+        self._save_trades()
+        return {"success": True, "trade": trade}
 
     def get_analytics(self) -> Dict[str, Any]:
-        """Tính toán toàn bộ số liệu báo cáo Ngày (T2-CN), Tuần, Tháng, Win Rate %, Best/Worst Day"""
-        trades = self.load_trades()
-        now = datetime.now()
+        """Tổng hợp phân tích PnL hàng ngày (T2 -> CN), Biểu đồ 24h và Thống kê 60 ngày"""
+        total_trades = len(self.trades)
+        wins = [t for t in self.trades if t.get("pnl_usd", 0.0) > 0]
+        losses = [t for t in self.trades if t.get("pnl_usd", 0.0) < 0]
 
-        total_trades = len(trades)
-        winning_trades = [t for t in trades if t.get("pnl_usd", 0) > 0]
-        losing_trades = [t for t in trades if t.get("pnl_usd", 0) < 0]
-        
-        win_rate = round((len(winning_trades) / total_trades * 100), 1) if total_trades > 0 else 0.0
-        total_pnl = round(sum(t.get("pnl_usd", 0) for t in trades), 2)
+        win_rate_pct = round((len(wins) / total_trades * 100), 1) if total_trades > 0 else 100.0
+        total_pnl_usd = round(sum(t.get("pnl_usd", 0.0) for t in self.trades), 2)
 
-        # Gom nhóm PnL theo từng Ngày (YYYY-MM-DD)
-        daily_map: Dict[str, Dict[str, Any]] = {}
-        for t in trades:
-            d_str = t.get("date_str", "")
-            if not d_str:
-                continue
-            if d_str not in daily_map:
-                dt_obj = datetime.strptime(d_str, "%Y-%m-%d")
-                daily_map[d_str] = {
-                    "date_str": d_str,
-                    "day_name_vi": self._translate_day_vi(dt_obj.strftime("%A")),
-                    "pnl_usd": 0.0,
-                    "trades_count": 0,
-                    "wins": 0,
-                    "losses": 0,
-                    "hourly": {h: 0.0 for h in range(24)}
-                }
-            
-            pnl = t.get("pnl_usd", 0)
-            hour = t.get("hour", 0)
-            daily_map[d_str]["pnl_usd"] += pnl
-            daily_map[d_str]["trades_count"] += 1
-            if pnl > 0:
-                daily_map[d_str]["wins"] += 1
-            elif pnl < 0:
-                daily_map[d_str]["losses"] += 1
-            
-            daily_map[d_str]["hourly"][hour] += pnl
+        # Tính toán 7 ngày trong tuần hiện tại (từ Thứ 2 đến Chủ Nhật)
+        today = datetime.now().date()
+        start_of_week = today - timedelta(days=today.weekday())
 
-        # Làm tròn dữ liệu daily
-        for d_str in daily_map:
-            daily_map[d_str]["pnl_usd"] = round(daily_map[d_str]["pnl_usd"], 2)
-            for h in range(24):
-                daily_map[d_str]["hourly"][h] = round(daily_map[d_str]["hourly"][h], 2)
-
-        # Bảng tuần này (7 ngày Thứ 2 -> Chủ Nhật)
-        start_of_week = now - timedelta(days=now.weekday()) # Monday
+        day_names_vi = ["Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy", "Chủ Nhật"]
         weekly_days = []
         weekly_pnl = 0.0
 
         for i in range(7):
-            day_dt = start_of_week + timedelta(days=i)
-            day_str = day_dt.strftime("%Y-%m-%d")
-            day_data = daily_map.get(day_str, {
+            day_date = start_of_week + timedelta(days=i)
+            day_str = day_date.strftime("%Y-%m-%d")
+
+            day_trades = [t for t in self.trades if t.get("date_str") == day_str]
+            day_pnl = round(sum(t.get("pnl_usd", 0.0) for t in day_trades), 2)
+            weekly_pnl += day_pnl
+
+            day_wins = len([t for t in day_trades if t.get("pnl_usd", 0.0) > 0])
+            day_losses = len([t for t in day_trades if t.get("pnl_usd", 0.0) < 0])
+
+            hourly_map = {h: 0.0 for h in range(24)}
+            for t in day_trades:
+                h = t.get("hour", 0)
+                hourly_map[h] = round(hourly_map.get(h, 0.0) + t.get("pnl_usd", 0.0), 2)
+
+            weekly_days.append({
                 "date_str": day_str,
-                "day_name_vi": self._translate_day_vi(day_dt.strftime("%A")),
-                "pnl_usd": 0.0,
-                "trades_count": 0,
-                "wins": 0,
-                "losses": 0,
-                "hourly": {h: 0.0 for h in range(24)}
+                "day_name_vi": day_names_vi[i],
+                "pnl_usd": day_pnl,
+                "trades_count": len(day_trades),
+                "wins": day_wins,
+                "losses": day_losses,
+                "hourly": hourly_map
             })
-            weekly_days.append(day_data)
-            weekly_pnl += day_data["pnl_usd"]
 
-        # Thống kê Ngày Lời Nhiều Nhất (Best Day) & Ngày Lời Ít Nhất / Lỗ (Worst Day)
-        sorted_days = sorted(daily_map.values(), key=lambda x: x["pnl_usd"], reverse=True)
-        best_day = sorted_days[0] if sorted_days else None
-        worst_day = sorted_days[-1] if sorted_days else None
+        # Phân tích ngày hôm nay
+        today_str = today.strftime("%Y-%m-%d")
+        today_trades = [t for t in self.trades if t.get("date_str") == today_str]
+        today_pnl = round(sum(t.get("pnl_usd", 0.0) for t in today_trades), 2)
+        today_hourly = {h: 0.0 for h in range(24)}
+        for t in today_trades:
+            h = t.get("hour", 0)
+            today_hourly[h] = round(today_hourly.get(h, 0.0) + t.get("pnl_usd", 0.0), 2)
 
-        # Phân bổ 24h của ngày hôm nay
-        today_str = now.strftime("%Y-%m-%d")
-        today_data = daily_map.get(today_str, {
+        today_summary = {
             "date_str": today_str,
-            "day_name_vi": self._translate_day_vi(now.strftime("%A")),
-            "pnl_usd": 0.0,
-            "trades_count": 0,
-            "wins": 0,
-            "losses": 0,
-            "hourly": {h: 0.0 for h in range(24)}
-        })
+            "day_name_vi": day_names_vi[today.weekday()],
+            "pnl_usd": today_pnl,
+            "trades_count": len(today_trades),
+            "wins": len([t for t in today_trades if t.get("pnl_usd", 0.0) > 0]),
+            "losses": len([t for t in today_trades if t.get("pnl_usd", 0.0) < 0]),
+            "hourly": today_hourly
+        }
+
+        # Tìm ngày lời nhất (Best Day) và ngày lời ít nhất / lỗ nhất (Worst Day)
+        days_grouped = {}
+        for t in self.trades:
+            d_str = t.get("date_str")
+            if d_str not in days_grouped:
+                days_grouped[d_str] = []
+            days_grouped[d_str].append(t)
+
+        best_day = None
+        worst_day = None
+        best_pnl = -999999.0
+        worst_pnl = 999999.0
+
+        for d_str, d_trades in days_grouped.items():
+            d_pnl = round(sum(t.get("pnl_usd", 0.0) for t in d_trades), 2)
+            d_obj = datetime.strptime(d_str, "%Y-%m-%d")
+            d_name_vi = day_names_vi[d_obj.weekday()]
+
+            summary_item = {
+                "date_str": d_str,
+                "day_name_vi": d_name_vi,
+                "pnl_usd": d_pnl,
+                "trades_count": len(d_trades),
+                "wins": len([t for t in d_trades if t.get("pnl_usd", 0.0) > 0]),
+                "losses": len([t for t in d_trades if t.get("pnl_usd", 0.0) < 0]),
+            }
+
+            if d_pnl > best_pnl:
+                best_pnl = d_pnl
+                best_day = summary_item
+
+            if d_pnl < worst_pnl:
+                worst_pnl = d_pnl
+                worst_day = summary_item
 
         return {
             "total_trades": total_trades,
-            "win_rate_pct": win_rate,
-            "total_pnl_usd": total_pnl,
+            "win_rate_pct": win_rate_pct,
+            "total_pnl_usd": total_pnl_usd,
             "weekly_pnl_usd": round(weekly_pnl, 2),
             "weekly_days": weekly_days,
-            "today": today_data,
+            "today": today_summary,
             "best_day": best_day,
             "worst_day": worst_day,
-            "history_60_days": list(daily_map.values())[-60:]
+            "history_60_days": list(days_grouped.keys())[-60:]
         }
-
-    def _translate_day_vi(self, day_en: str) -> str:
-        translations = {
-            "Monday": "Thứ Hai",
-            "Tuesday": "Thứ Ba",
-            "Wednesday": "Thứ Tư",
-            "Thursday": "Thứ Năm",
-            "Friday": "Thứ Sáu",
-            "Saturday": "Thứ Bảy",
-            "Sunday": "Chủ Nhật"
-        }
-        return translations.get(day_en, day_en)
 
 pnl_tracker = PnLTracker()
