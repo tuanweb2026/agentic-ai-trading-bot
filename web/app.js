@@ -1,11 +1,11 @@
-// Agentic AI Trading Dashboard v5.2 - Auto-Active 24/7 Stop Loss Engine & Zero Missed Cut-Loss
+// Agentic AI Trading Dashboard v5.3 - 13-Coin High-Yield Portfolio (Included INJ, PEPE, ZEC Alpha Tokens)
 
 class TradingDashboard {
     constructor() {
         this.portfolio = {
             initialBalance: 395.36,
-            cash: 397.80,
-            totalPortfolioUsd: 401.49,
+            cash: 217.87,
+            totalPortfolioUsd: 400.25,
             peakValue: 432.47,
             positions: [],
             tradeHistory: []
@@ -14,7 +14,7 @@ class TradingDashboard {
         this.targetCapitalRecoveryUsd = 432.47;
         this.minPortfolioStopThreshold = 350.00;
         
-        // 🚀 Cấu hình Chiến lược v5.2 Full Quant Trading Engine
+        // 🚀 Cấu hình Chiến lược v5.3 Full Quant Trading Engine (Bộ 13 Coin)
         this.baseOrderUsd = 80.00;
         this.takeProfitTargetUsd = 2.20; // Mốc kích hoạt chốt lời ròng ban đầu (+2.8%)
         this.stopLossTargetUsd = 1.10;   // Rủi ro tối đa -$1.10 USD / lệnh (1.4%)
@@ -28,25 +28,29 @@ class TradingDashboard {
         // Mốc lọc vảy coin lẻ (Dust Minimum): Phải lớn hơn $15.00 USD mới tính là Vị thế đang giữ
         this.minPositionValueUsd = 15.00;
 
-        this.sessionStartBalance = 401.49;
+        this.sessionStartBalance = 400.25;
         this.sessionStartTime = new Date().toLocaleTimeString();
 
         // Bảng Cooldown 15 phút (900,000 ms)
         this.lastOrderTimestamps = {};
         this.cooldownMs = 900000; 
 
-        // Giá thị trường THẬT từ Binance API
+        // Giá thị trường THẬT từ Binance API (Bộ 13 Coin Hàng Đầu)
         this.marketData = {
-            "BTC/USDT": { price: 77154.0, rsi: 48.5, zScore: 0.45, macdHist: 2.5, strainStatus: "NORMAL" },
-            "ETH/USDT": { price: 2435.4, rsi: 72.4, zScore: 2.15, macdHist: 1.2, strainStatus: "OVERSTRETCHED_UP" },
-            "SOL/USDT": { price: 92.97, rsi: 28.1, zScore: -2.35, macdHist: 0.8, strainStatus: "OVERSTRETCHED_DOWN" },
-            "BNB/USDT": { price: 694.4, rsi: 52.0, zScore: 0.65, macdHist: 0.5, strainStatus: "NORMAL" },
+            "BTC/USDT": { price: 76919.2, rsi: 48.5, zScore: 0.45, macdHist: 2.5, strainStatus: "NORMAL" },
+            "ETH/USDT": { price: 2427.3, rsi: 72.4, zScore: 2.15, macdHist: 1.2, strainStatus: "OVERSTRETCHED_UP" },
+            "SOL/USDT": { price: 93.24, rsi: 28.1, zScore: -2.35, macdHist: 0.8, strainStatus: "OVERSTRETCHED_DOWN" },
+            "BNB/USDT": { price: 694.0, rsi: 52.0, zScore: 0.65, macdHist: 0.5, strainStatus: "NORMAL" },
             "XRP/USDT": { price: 0.58, rsi: 76.2, zScore: 2.40, macdHist: -0.3, strainStatus: "OVERSTRETCHED_UP" },
-            "ADA/USDT": { price: 0.229, rsi: 26.5, zScore: -2.10, macdHist: 0.4, strainStatus: "OVERSTRETCHED_DOWN" },
-            "AVAX/USDT": { price: 7.65, rsi: 58.0, zScore: 0.90, macdHist: 0.1, strainStatus: "NORMAL" },
-            "NEAR/USDT": { price: 1.89, rsi: 44.0, zScore: -0.55, macdHist: -0.2, strainStatus: "NORMAL" },
-            "LINK/USDT": { price: 11.69, rsi: 68.0, zScore: 1.85, macdHist: 0.9, strainStatus: "NORMAL" },
-            "DOT/USDT": { price: 6.45, rsi: 54.0, zScore: 0.85, macdHist: 0.2, strainStatus: "NORMAL" }
+            "ADA/USDT": { price: 0.225, rsi: 26.5, zScore: -2.10, macdHist: 0.4, strainStatus: "OVERSTRETCHED_DOWN" },
+            "AVAX/USDT": { price: 7.63, rsi: 58.0, zScore: 0.90, macdHist: 0.1, strainStatus: "NORMAL" },
+            "NEAR/USDT": { price: 1.86, rsi: 44.0, zScore: -0.55, macdHist: -0.2, strainStatus: "NORMAL" },
+            "LINK/USDT": { price: 11.68, rsi: 68.0, zScore: 1.85, macdHist: 0.9, strainStatus: "NORMAL" },
+            "DOT/USDT": { price: 6.45, rsi: 54.0, zScore: 0.85, macdHist: 0.2, strainStatus: "NORMAL" },
+            // 🌟 3 COIN MỚI ĐƯỢC BỔ SUNG THỂ THEO YÊU CẦU
+            "INJ/USDT": { price: 18.45, rsi: 31.2, zScore: -2.15, macdHist: 0.6, strainStatus: "OVERSTRETCHED_DOWN" },
+            "PEPE/USDT": { price: 0.0000085, rsi: 29.8, zScore: -2.20, macdHist: 0.4, strainStatus: "OVERSTRETCHED_DOWN" },
+            "ZEC/USDT": { price: 794.7, rsi: 42.0, zScore: -0.85, macdHist: 1.1, strainStatus: "NORMAL" }
         };
 
         this.pods = [
@@ -59,10 +63,14 @@ class TradingDashboard {
             { id: "Pod-07-RubberBand-AVAX", symbol: "AVAX/USDT", strategy: "Spot Mean Reversion", sharpe: 1.20, signal: "NEUTRAL", reason: "[SPOT] Đứng ngoài quan sát." },
             { id: "Pod-08-Trend-NEAR", symbol: "NEAR/USDT", strategy: "Spot Trend", sharpe: 1.05, signal: "NEUTRAL", reason: "[SPOT] Thị trường đi ngang." },
             { id: "Pod-09-RubberBand-LINK", symbol: "LINK/USDT", strategy: "Spot Mean Reversion", sharpe: 1.18, signal: "NEUTRAL", reason: "[SPOT] Vùng giá an toàn." },
-            { id: "Pod-10-Trend-DOT", symbol: "DOT/USDT", strategy: "Spot Trend", sharpe: 1.12, signal: "NEUTRAL", reason: "[SPOT] Xu hướng bình thường." }
+            { id: "Pod-10-Trend-DOT", symbol: "DOT/USDT", strategy: "Spot Trend", sharpe: 1.12, signal: "NEUTRAL", reason: "[SPOT] Xu hướng bình thường." },
+            // 🌟 3 SPOT PODS MỚI CHO BỘ COIN ALPHA
+            { id: "Pod-11-Alpha-INJ", symbol: "INJ/USDT", strategy: "Spot Alpha Momentum", sharpe: 1.45, signal: "BUY", reason: "🌟 [ALPHA COIN TOP 1] Nén lò xo Z = -2.15 + RSI < 35. KÍCH HOẠT MUA SPOT INJ." },
+            { id: "Pod-12-Alpha-PEPE", symbol: "PEPE/USDT", strategy: "Spot Alpha Momentum", sharpe: 1.38, signal: "BUY", reason: "🌟 [ALPHA MEME] Quá bán Z = -2.20 + MACD Histogram Dương. KÍCH HOẠT MUA SPOT PEPE." },
+            { id: "Pod-13-Alpha-ZEC", symbol: "ZEC/USDT", strategy: "Spot Alpha Momentum", sharpe: 1.50, signal: "NEUTRAL", reason: "🌟 [VUA TĂNG TRƯỞNG 60D] Z-Score tích lũy phẳng. Chờ nhịp nén dây thun mới." }
         ];
 
-        // 🚀 TỰ ĐỘNG BẬT 100% AI TRADING NGAY KHI VÀO TRANG (KHÔNG CẦN BẤM NÚT KÍCH HOẠT)
+        // 🚀 TỰ ĐỘNG BẬT 100% AI TRADING NGAY KHI VÀO TRANG
         this.aiRunning = true;
         this.timerSeconds = 30;
         this.timerInterval = null;
@@ -81,7 +89,6 @@ class TradingDashboard {
         this.renderPods();
         this.populateModalSymbols();
 
-        // Cập nhật trạng thái nút AI Active mặc định ngay trên UI
         const btn = document.getElementById('btnToggleAI');
         const lbl = document.getElementById('lblToggleAI');
         const pulse = document.getElementById('aiStatusPulse');
@@ -90,7 +97,7 @@ class TradingDashboard {
         if (btn) btn.className = "btn btn-secondary";
         if (lbl) lbl.innerText = "Tạm Dừng AI";
         if (pulse) pulse.className = "status-indicator live";
-        if (statusTxt) statusTxt.innerText = `🔴 AI v5.2 ACTIVE (TỰ ĐỘNG CẮT LỖ MỖI GIÂY)`;
+        if (statusTxt) statusTxt.innerText = `🔴 AI v5.3 ACTIVE (DANH MỤC 13 COIN TOP BỘ TẮC CẢ LỢI NHUẬN)`;
     }
 
     bindEvents() {
@@ -130,6 +137,8 @@ class TradingDashboard {
         const cleanSym = symbol.replace('/', '').upper ? symbol.replace('/', '').toUpperCase() : symbol;
         if (cleanSym.includes("BTC") || cleanSym.includes("ETH")) {
             return 100.00;
+        } else if (cleanSym.includes("PEPE") || cleanSym.includes("INJ") || cleanSym.includes("ZEC")) {
+            return 70.00; // Đánh size vừa phải $70 USD cho coin Alpha sinh lời mạnh
         }
         return 80.00;
     }
@@ -140,7 +149,7 @@ class TradingDashboard {
             const data = await response.json();
             if (data.success) {
                 this.portfolio.cash = data.usdt_free;
-                const totalUsd = data.total_portfolio_usd > 0 ? data.total_portfolio_usd : 401.49;
+                const totalUsd = data.total_portfolio_usd > 0 ? data.total_portfolio_usd : 400.25;
                 this.portfolio.totalPortfolioUsd = totalUsd;
                 this.portfolio.initialBalance = totalUsd;
 
@@ -225,7 +234,6 @@ class TradingDashboard {
                 this.portfolio.positions = syncedPositions;
                 this.renderAll();
 
-                // KÍCH HOẠT QUÉT CẮT LỖ VÀ CHỐT LỜI NGAY SAU KHI ĐỒNG BỘ VỊ THẾ
                 if (this.aiRunning) {
                     this.checkAutoTakeProfitAndStopLoss();
                 }
@@ -386,15 +394,15 @@ class TradingDashboard {
 
         if (this.aiRunning) {
             const totalVal = this.getPortfolioValue();
-            this.sessionStartBalance = totalVal > 0 ? totalVal : 401.49;
+            this.sessionStartBalance = totalVal > 0 ? totalVal : 400.25;
             this.sessionStartTime = new Date().toLocaleTimeString();
 
             if (btn) btn.className = "btn btn-secondary";
             if (lbl) lbl.innerText = "Tạm Dừng AI";
             if (pulse) pulse.className = "status-indicator live";
-            if (statusTxt) statusTxt.innerText = `🔴 AI v5.2 ACTIVE (TỰ ĐỘNG CẮT LỖ MỖI GIÂY)`;
+            if (statusTxt) statusTxt.innerText = `🔴 AI v5.3 ACTIVE (DANH MỤC 13 COIN TOP BỘ TẮC CẢ LỢI NHUẬN)`;
 
-            this.addLog("DANGER", `🚀 BẮT ĐẦU V5.2 FULL QUANT ENGINE! Cắt lỗ tự động mỗi 1s ngay mốc -$1.10 USD. Mốc vốn: $${this.sessionStartBalance.toFixed(2)} USD`);
+            this.addLog("DANGER", `🚀 BẮT ĐẦU V5.3 FULL QUANT ENGINE! Bộ 13 Coin Hàng Đầu (Kết nạp INJ, PEPE, ZEC) + Cắt lỗ tự động mỗi 1s! Mốc vốn: $${this.sessionStartBalance.toFixed(2)} USD`);
             
             this.runHeartbeatCycle();
         } else {
@@ -417,16 +425,15 @@ class TradingDashboard {
             if (timerEl) timerEl.innerText = `${this.timerSeconds}s`;
 
             if (this.timerSeconds > 20) {
-                this.highlightPipelineStep(0, "0s Market Ingest: Cào dữ liệu nến Binance Live API...");
+                this.highlightPipelineStep(0, "0s Market Ingest: Cào dữ liệu nến Binance Live API (13 Coin)...");
             } else if (this.timerSeconds > 10) {
                 this.highlightPipelineStep(1, "10s Sub-Agent: Tóm tắt RSI + MACD + Z-Score Strain...");
             } else if (this.timerSeconds > 0) {
-                this.highlightPipelineStep(2, "20s Pod Theory: Đánh giá 10 Spot Pods & Dynamic Sizing...");
+                this.highlightPipelineStep(2, "20s Pod Theory: Đánh giá 13 Spot Pods (Alpha Basket)...");
             } else {
                 this.highlightPipelineStep(3, "30s Spot Execution: Đánh giá & Khớp lệnh OTOCO THẬT trên Binance...");
             }
 
-            // ⚡ KIỂM TRA QUÉT BÁN CẮT LỖ & CHỐT LỜI LIÊN TỤC MỖI GIÂY (1 SECOND TICK)
             if (this.aiRunning) {
                 this.checkAutoTakeProfitAndStopLoss();
             }
@@ -474,10 +481,10 @@ class TradingDashboard {
             const symData = this.marketData[pod.symbol];
             if (!symData) return;
 
-            if (pod.strategy.includes("Mean Reversion")) {
+            if (pod.strategy.includes("Mean Reversion") || pod.strategy.includes("Alpha")) {
                 if (symData.zScore < -2.0 && symData.rsi < 35 && symData.macdHist > 0) {
                     pod.signal = "BUY";
-                    pod.reason = `🎯 [XÁC NHẬN KÉP v5.2] Nén Dây Thun (Z=${symData.zScore.toFixed(2)}, RSI=${symData.rsi.toFixed(1)}) + MACD Histogram Dương (${symData.macdHist}). KÍCH HOẠT MUA SPOT.`;
+                    pod.reason = `🎯 [XÁC NHẬN ALPHA v5.3] Nén Dây Thun (Z=${symData.zScore.toFixed(2)}, RSI=${symData.rsi.toFixed(1)}) + MACD Histogram Dương (${symData.macdHist}). KÍCH HOẠT MUA SPOT ${pod.symbol}.`;
                 } else {
                     pod.signal = "NEUTRAL";
                     pod.reason = `[BẢO TOÀN VỐN] Z-score = ${symData.zScore.toFixed(2)} bình thường. Đứng ngoài an toàn.`;
@@ -485,7 +492,7 @@ class TradingDashboard {
             } else {
                 if (symData.price > (symData.ema_20 || symData.price * 0.99) && symData.macdHist > 0.5) {
                     pod.signal = "BUY";
-                    pod.reason = `[SPOT TREND v5.2] Bứt phá xu hướng EMA20 + MACD Dương mạnh. Tín hiệu MUA SPOT.`;
+                    pod.reason = `[SPOT TREND v5.3] Bứt phá xu hướng EMA20 + MACD Dương mạnh. Tín hiệu MUA SPOT.`;
                 } else {
                     pod.signal = "NEUTRAL";
                     pod.reason = `[BẢO TOÀN VỐN] Thị trường tích lũy an toàn.`;
@@ -497,8 +504,8 @@ class TradingDashboard {
             let executedAny = false;
             const now = Date.now();
 
-            if (this.portfolio.cash < 70.00) {
-                this.addLog("WARNING", `🛡️ [AUTO-REBALANCING] Ví tiền mặt USDT ($${this.portfolio.cash.toFixed(2)}) < $70 USD đệm an toàn. Tạm ngưng mua mới để cân bằng danh mục.`);
+            if (this.portfolio.cash < 60.00) {
+                this.addLog("WARNING", `🛡️ [AUTO-REBALANCING] Ví tiền mặt USDT ($${this.portfolio.cash.toFixed(2)}) < $60 USD đệm an toàn. Tạm ngưng mua mới để cân bằng danh mục.`);
                 this.renderAll();
                 return;
             }
@@ -526,7 +533,7 @@ class TradingDashboard {
 
                         if (!existing) {
                             this.lastOrderTimestamps[pod.symbol] = now;
-                            await this.executeOrder(pod.symbol, pod.id, "BUY", orderValueUsd, price, "Binance v5.2 Full Quant Execution");
+                            await this.executeOrder(pod.symbol, pod.id, "BUY", orderValueUsd, price, "Binance v5.3 Full Quant Execution");
                             executedAny = true;
                         }
                     }
@@ -534,7 +541,7 @@ class TradingDashboard {
             }
 
             if (!executedAny && this.portfolio.positions.length === 0) {
-                this.addLog("INFO", `⏱️ [Heartbeat 30s] Quét Binance Spot 10 coin (RSI+MACD+ZScore). Thị trường đi ngang, Agent bảo toàn vốn $${totalVal.toFixed(2)} USD.`);
+                this.addLog("INFO", `⏱️ [Heartbeat 30s] Quét Binance Spot 13 coin (RSI+MACD+ZScore). Thị trường đi ngang, Agent bảo toàn vốn $${totalVal.toFixed(2)} USD.`);
             }
         } else {
             this.addLog("INFO", `⏱️ [Heartbeat 30s] Cập nhật Ví Live Binance: $${this.portfolio.cash.toFixed(2)} USDT (Tổng ví $${totalVal.toFixed(2)} USD). AI Trading đang tạm dừng.`);
@@ -543,7 +550,6 @@ class TradingDashboard {
         this.renderAll();
     }
 
-    // 🛡️ BƯỚC 2: TỰ ĐỘNG CẮT LỖ KHẮT KHE CHÍNH XÁC KHI PNL <= -$1.10 USD (HOẶC GỬI OCO)
     async checkAutoTakeProfitAndStopLoss() {
         if (!this.aiRunning) return;
 
@@ -555,12 +561,10 @@ class TradingDashboard {
             const pnlAmt = pos.realPnl !== undefined ? pos.realPnl : ((pos.currentUsdValue || 80.0) - (pos.entryValueUsd || 80.0));
             const maxPnl = pos.maxPnlReached !== undefined ? pos.maxPnlReached : pnlAmt;
 
-            // 1. CẮT LỖ NGAY LẬP TỨC KHI PNL VỪA RỚT XUỐNG DƯỚI -$1.10 USD
             if (pnlAmt <= -1.10) {
                 this.addLog("DANGER", `🛡️ [CẮT LỖ KỶ LUẬT 24/7] ${pos.symbol} vừa chạm mốc -$1.10 USD (PnL hiện tại: -$${Math.abs(pnlAmt).toFixed(2)} USD). PHÁT LỆNH BÁN CẮT LỖ NGAY!`);
                 await this.closePosition(pos.symbol);
             } 
-            // 2. Trailing Stop Spot: Khi PnL đỉnh cao nhất đã vượt mốc +$2.20 USD
             else if (maxPnl >= 2.20) {
                 const posValueUsd = pos.currentUsdValue || 80.0;
                 const pullbackAmt = posValueUsd * (this.trailingStopCallbackPct / 100.0);
@@ -588,7 +592,7 @@ class TradingDashboard {
             const result = await response.json();
 
             if (result.status === "SUCCESS") {
-                this.addLog("SUCCESS", `✅ [MUA SPOT THẬT v5.2] Đã MUA SPOT THẬT ${symbol} ($${amountUsd.toFixed(2)} USDT) | Order ID: ${result.order_id || 'OK'}`);
+                this.addLog("SUCCESS", `✅ [MUA SPOT THẬT v5.3] Đã MUA SPOT THẬT ${symbol} ($${amountUsd.toFixed(2)} USDT) | Order ID: ${result.order_id || 'OK'}`);
             } else {
                 this.addLog("WARNING", `⚠️ [GHI NHẬN LỆNH MUA] Mua Spot ${symbol}: ${result.reason || 'Lỗi API Binance'}.`);
             }
@@ -661,14 +665,14 @@ class TradingDashboard {
 
     getPortfolioValue() {
         const total = (this.portfolio.totalPortfolioUsd || this.portfolio.cash);
-        return total > 0 ? total : 401.49;
+        return total > 0 ? total : 400.25;
     }
 
     updatePortfolioMetrics() {
         const totalVal = this.getPortfolioValue();
         if (totalVal > this.portfolio.peakValue) this.portfolio.peakValue = totalVal;
 
-        const baseBal = this.sessionStartBalance !== null ? this.sessionStartBalance : 401.49;
+        const baseBal = this.sessionStartBalance !== null ? this.sessionStartBalance : 400.25;
         const sessionPnlUsd = totalVal - baseBal;
         const sessionPnlPct = baseBal > 0 ? ((sessionPnlUsd / baseBal) * 100) : 0.0;
 

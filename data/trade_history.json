@@ -105,5 +105,16 @@
     "date_str": "2026-08-22",
     "day_name": "Saturday",
     "hour": 12
+  },
+  {
+    "order_id": "17634206207",
+    "symbol": "SOL/USDT",
+    "side": "SELL",
+    "amount_usd": 80.0,
+    "pnl_usd": -1.23,
+    "timestamp": 1787376173,
+    "date_str": "2026-08-22",
+    "day_name": "Saturday",
+    "hour": 12
   }
 ]
