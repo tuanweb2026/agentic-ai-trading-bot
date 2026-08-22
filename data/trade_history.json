@@ -116,5 +116,16 @@
     "date_str": "2026-08-22",
     "day_name": "Saturday",
     "hour": 12
+  },
+  {
+    "order_id": "3131893691",
+    "symbol": "INJ/USDT",
+    "side": "SELL",
+    "amount_usd": 70.0,
+    "pnl_usd": -1.13,
+    "timestamp": 1787391016,
+    "date_str": "2026-08-22",
+    "day_name": "Saturday",
+    "hour": 16
   }
 ]
