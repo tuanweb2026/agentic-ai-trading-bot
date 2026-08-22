@@ -1,7 +1,7 @@
 import json
 import os
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Dict, Any, List
 
 class PnLTracker:
@@ -37,7 +37,6 @@ class PnLTracker:
         # 🚀 KIỂM TRA XEM ORDER ID ĐÃ TỒN TẠI TRƯỚC ĐÓ CHƯA
         for t in self.trades:
             if str(t.get("order_id")) == order_id_str:
-                # Nếu lệnh trước đó lưu PnL = 0.0 mà bây giờ có PnL thực tế khác 0 -> CẬP NHẬT PNL THỰC TẾ!
                 if t.get("pnl_usd", 0.0) == 0.0 and pnl_usd != 0.0:
                     t["pnl_usd"] = round(pnl_usd, 2)
                     if amount_usd > 0:
