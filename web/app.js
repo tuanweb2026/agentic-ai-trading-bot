@@ -1,11 +1,11 @@
-// Agentic AI Trading Dashboard v4.0.5 - True Coin Price Trailing Stop (0.8% Price Callback) & Live AI Execution
+// Agentic AI Trading Dashboard v5.0 - PnL Analytics, 24-Hour Timeline Chart & 60-Day Report Engine
 
 class TradingDashboard {
     constructor() {
         this.portfolio = {
             initialBalance: 395.36,
             cash: 224.55,
-            totalPortfolioUsd: 411.81,
+            totalPortfolioUsd: 411.39,
             peakValue: 432.47,
             positions: [],
             tradeHistory: []
@@ -28,7 +28,7 @@ class TradingDashboard {
         // Mốc lọc vảy coin lẻ (Dust Minimum): Phải lớn hơn $15.00 USD mới tính là Vị thế đang giữ
         this.minPositionValueUsd = 15.00;
 
-        this.sessionStartBalance = 411.81;
+        this.sessionStartBalance = 411.39;
         this.sessionStartTime = new Date().toLocaleTimeString();
 
         // Bảng Cooldown 15 phút (900,000 ms)
@@ -37,13 +37,13 @@ class TradingDashboard {
 
         // Giá thị trường THẬT từ Binance API
         this.marketData = {
-            "BTC/USDT": { price: 78505.0, rsi: 48.5, zScore: 0.45, macdHist: 2.5, strainStatus: "NORMAL" },
-            "ETH/USDT": { price: 2535.9, rsi: 72.4, zScore: 2.15, macdHist: 1.2, strainStatus: "OVERSTRETCHED_UP" },
-            "SOL/USDT": { price: 93.83, rsi: 28.1, zScore: -2.35, macdHist: 0.8, strainStatus: "OVERSTRETCHED_DOWN" },
-            "BNB/USDT": { price: 688.8, rsi: 52.0, zScore: 0.65, macdHist: 0.5, strainStatus: "NORMAL" },
+            "BTC/USDT": { price: 78410.0, rsi: 48.5, zScore: 0.45, macdHist: 2.5, strainStatus: "NORMAL" },
+            "ETH/USDT": { price: 2531.0, rsi: 72.4, zScore: 2.15, macdHist: 1.2, strainStatus: "OVERSTRETCHED_UP" },
+            "SOL/USDT": { price: 93.57, rsi: 28.1, zScore: -2.35, macdHist: 0.8, strainStatus: "OVERSTRETCHED_DOWN" },
+            "BNB/USDT": { price: 688.0, rsi: 52.0, zScore: 0.65, macdHist: 0.5, strainStatus: "NORMAL" },
             "XRP/USDT": { price: 0.58, rsi: 76.2, zScore: 2.40, macdHist: -0.3, strainStatus: "OVERSTRETCHED_UP" },
-            "ADA/USDT": { price: 0.228, rsi: 26.5, zScore: -2.10, macdHist: 0.4, strainStatus: "OVERSTRETCHED_DOWN" },
-            "AVAX/USDT": { price: 7.82, rsi: 58.0, zScore: 0.90, macdHist: 0.1, strainStatus: "NORMAL" },
+            "ADA/USDT": { price: 0.227, rsi: 26.5, zScore: -2.10, macdHist: 0.4, strainStatus: "OVERSTRETCHED_DOWN" },
+            "AVAX/USDT": { price: 7.80, rsi: 58.0, zScore: 0.90, macdHist: 0.1, strainStatus: "NORMAL" },
             "NEAR/USDT": { price: 1.97, rsi: 44.0, zScore: -0.55, macdHist: -0.2, strainStatus: "NORMAL" },
             "LINK/USDT": { price: 12.28, rsi: 68.0, zScore: 1.85, macdHist: 0.9, strainStatus: "NORMAL" },
             "DOT/USDT": { price: 6.45, rsi: 54.0, zScore: 0.85, macdHist: 0.2, strainStatus: "NORMAL" }
@@ -69,6 +69,7 @@ class TradingDashboard {
         this.initUI();
         this.bindEvents();
         this.syncRealBinanceBalance();
+        this.fetchPnlAnalytics();
 
         this.startTimer();
     }
@@ -127,7 +128,7 @@ class TradingDashboard {
             const data = await response.json();
             if (data.success) {
                 this.portfolio.cash = data.usdt_free;
-                const totalUsd = data.total_portfolio_usd > 0 ? data.total_portfolio_usd : 411.81;
+                const totalUsd = data.total_portfolio_usd > 0 ? data.total_portfolio_usd : 411.39;
                 this.portfolio.totalPortfolioUsd = totalUsd;
                 this.portfolio.initialBalance = totalUsd;
 
@@ -217,6 +218,120 @@ class TradingDashboard {
         }
     }
 
+    async fetchPnlAnalytics() {
+        try {
+            const response = await fetch('/api/pnl-analytics?t=' + Date.now());
+            const json = await response.json();
+            if (json.success && json.data) {
+                this.renderPnlAnalytics(json.data);
+            }
+        } catch (err) {
+            console.log("Error fetching PnL Analytics:", err);
+        }
+    }
+
+    renderPnlAnalytics(data) {
+        // 1. Metric Stat Cards
+        const statWeekly = document.getElementById('statWeeklyPnl');
+        if (statWeekly) {
+            const pnl = data.weekly_pnl_usd || 0.0;
+            statWeekly.innerText = `${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)} USD`;
+            statWeekly.className = `metric-value ${pnl >= 0 ? 'text-success' : 'text-danger'}`;
+        }
+
+        const statWin = document.getElementById('statWinRate');
+        if (statWin) {
+            statWin.innerText = `${data.win_rate_pct || 100.0}%`;
+        }
+
+        const statBest = document.getElementById('statBestDay');
+        if (statBest) {
+            const b = data.best_day;
+            if (b) {
+                statBest.innerText = `+${b.pnl_usd.toFixed(2)} USD (${b.day_name_vi} ${b.date_str.split('-').slice(1).join('/')})`;
+            } else {
+                statBest.innerText = "+$0.00 USD";
+            }
+        }
+
+        const statWorst = document.getElementById('statWorstDay');
+        if (statWorst) {
+            const w = data.worst_day;
+            if (w) {
+                const sign = w.pnl_usd >= 0 ? '+' : '';
+                statWorst.innerText = `${sign}$${w.pnl_usd.toFixed(2)} USD (${w.day_name_vi} ${w.date_str.split('-').slice(1).join('/')})`;
+                statWorst.className = `metric-value ${w.pnl_usd >= 0 ? 'text-success' : 'text-danger'}`;
+            } else {
+                statWorst.innerText = "$0.00 USD";
+            }
+        }
+
+        // 2. Render Biểu Đồ 24 Giờ Hàng Ngày (24-Hour Timeline Chart)
+        const wrapper = document.getElementById('timelineBarsWrapper');
+        if (wrapper && data.today && data.today.hourly) {
+            wrapper.innerHTML = '';
+            const hourly = data.today.hourly;
+            
+            // Tìm giá trị max PnL để scale độ cao cột
+            let maxVal = 1.0;
+            for (let h = 0; h < 24; h++) {
+                const absVal = Math.abs(hourly[h] || 0);
+                if (absVal > maxVal) maxVal = absVal;
+            }
+
+            for (let h = 0; h < 24; h++) {
+                const val = hourly[h] || 0.0;
+                const col = document.createElement('div');
+                col.className = 'hour-bar-col';
+
+                let heightPct = 0;
+                let fillClass = 'zero';
+                if (val > 0) {
+                    heightPct = Math.max(10, Math.min(100, (val / maxVal) * 100));
+                    fillClass = 'profit';
+                } else if (val < 0) {
+                    heightPct = Math.max(10, Math.min(100, (Math.abs(val) / maxVal) * 100));
+                    fillClass = 'loss';
+                }
+
+                const hourFormatted = h < 10 ? `0${h}:00` : `${h}:00`;
+                const valStr = val >= 0 ? `+$${val.toFixed(2)}` : `-$${Math.abs(val).toFixed(2)}`;
+
+                col.innerHTML = `
+                    <div class="bar-tooltip">${hourFormatted}: ${valStr}</div>
+                    <div class="bar-fill ${fillClass}" style="height: ${heightPct}%;"></div>
+                    <div class="hour-label">${h}h</div>
+                `;
+                wrapper.appendChild(col);
+            }
+        }
+
+        // 3. Render Bảng Thống Kê Chi Tiết 7 Ngày Trong Tuần (T2 -> CN)
+        const tbody = document.getElementById('pnlWeeklyTableBody');
+        if (tbody && data.weekly_days) {
+            tbody.innerHTML = '';
+            data.weekly_days.forEach(day => {
+                const tr = document.createElement('tr');
+                const pnl = day.pnl_usd || 0.0;
+                const pnlClass = pnl >= 0 ? 'text-success' : 'text-danger';
+                const pnlStr = pnl >= 0 ? `+$${pnl.toFixed(2)}` : `-$${Math.abs(pnl).toFixed(2)}`;
+                const statusBadge = pnl > 0 ? `<span class="badge badge-success">LÃI RÒNG</span>` : 
+                                   (pnl < 0 ? `<span class="badge badge-danger">LỖ RÒNG</span>` : `<span class="badge badge-info">HÒA VỐN</span>`);
+
+                const dateDisplay = day.date_str ? day.date_str.split('-').reverse().join('/') : '-';
+
+                tr.innerHTML = `
+                    <td><strong>${day.day_name_vi}</strong></td>
+                    <td class="font-mono">${dateDisplay}</td>
+                    <td class="font-mono"><span class="text-success">${day.wins || 0} Thắng</span> / <span class="text-danger">${day.losses || 0} Thua</span></td>
+                    <td class="font-mono ${pnlClass}"><strong>${pnlStr} USD</strong></td>
+                    <td>${statusBadge}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+    }
+
     triggerSafetyEmergencyStop(currentBalance) {
         if (this.aiRunning) {
             this.aiRunning = false;
@@ -258,7 +373,7 @@ class TradingDashboard {
 
         if (this.aiRunning) {
             const totalVal = this.getPortfolioValue();
-            this.sessionStartBalance = totalVal > 0 ? totalVal : 411.81;
+            this.sessionStartBalance = totalVal > 0 ? totalVal : 411.39;
             this.sessionStartTime = new Date().toLocaleTimeString();
 
             if (btn) btn.className = "btn btn-secondary";
@@ -329,6 +444,8 @@ class TradingDashboard {
 
     async runHeartbeatCycle() {
         await this.syncRealBinanceBalance();
+        await this.fetchPnlAnalytics();
+
         const totalVal = this.getPortfolioValue();
         if (totalVal < 350.00 && totalVal > 0 && this.aiRunning) {
             this.triggerSafetyEmergencyStop(totalVal);
@@ -354,7 +471,7 @@ class TradingDashboard {
                     pod.signal = "NEUTRAL";
                     pod.reason = `[BẢO TOÀN VỐN] Z-score = ${symData.zScore.toFixed(2)} bình thường. Đứng ngoài an toàn.`;
                 }
-            } else { // Spot Trend
+            } else {
                 if (symData.price > (symData.ema_20 || symData.price * 0.99) && symData.macdHist > 0.5) {
                     pod.signal = "BUY";
                     pod.reason = `[SPOT TREND v4.0] Bứt phá xu hướng EMA20 + MACD Dương mạnh. Tín hiệu MUA SPOT.`;
@@ -422,7 +539,6 @@ class TradingDashboard {
         this.renderAll();
     }
 
-    // 📈 TRAILING STOP SPOT: KHOẢNG LÙI 0.8% THEO GIÁ COIN (POSITION VALUE)
     async checkAutoTakeProfitAndStopLoss() {
         if (!this.aiRunning) return;
 
@@ -434,19 +550,13 @@ class TradingDashboard {
             const pnlAmt = pos.realPnl !== undefined ? pos.realPnl : ((pos.currentUsdValue || 80.0) - (pos.entryValueUsd || 80.0));
             const maxPnl = pos.maxPnlReached !== undefined ? pos.maxPnlReached : pnlAmt;
 
-            // 1. Cắt lỗ an toàn khi PnL <= -$1.10 USD
             if (pnlAmt <= -1.10) {
                 await this.closePosition(pos.symbol);
-            } 
-            // 2. Trailing Stop Spot: Khi PnL đỉnh cao nhất đã vượt mốc +$2.20 USD
-            else if (maxPnl >= 2.20) {
-                // Khoảng lùi 0.8% theo Giá trị ví coin (Position Value): 0.8% của ~$83.40 USD = ~$0.67 USD
+            } else if (maxPnl >= 2.20) {
                 const posValueUsd = pos.currentUsdValue || 80.0;
-                const pullbackAmt = posValueUsd * (this.trailingStopCallbackPct / 100.0); // ~$0.67 USD
-                
-                const trailingStopPnlTarget = maxPnl - pullbackAmt; // +$3.40 - $0.67 = +$2.73 USD
+                const pullbackAmt = posValueUsd * (this.trailingStopCallbackPct / 100.0);
+                const trailingStopPnlTarget = maxPnl - pullbackAmt;
 
-                // Nếu PnL hiện tại tụt sụt lùi vượt qua mốc lùi 0.8% giá coin (PnL <= +$2.73 USD)
                 if (pnlAmt <= trailingStopPnlTarget || pnlAmt >= 5.00) {
                     await this.closePosition(pos.symbol);
                 }
@@ -516,6 +626,24 @@ class TradingDashboard {
 
             if (result.status === "SUCCESS" && result.order_id) {
                 this.addLog("SUCCESS", `🎯 [BÁN CHỐT SPOT THẬT BINANCE] Đã bán chốt Spot ${pos.symbol} thu tiền về ví Binance USDT | PnL: ${pnlStr} | Order ID: ${result.order_id}`);
+                
+                // 💾 GHI NHẬN VÀO FILE BÁO CÁO PNL 60 NGÀY BỀN VỮNG
+                try {
+                    await fetch('/api/record-trade', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            symbol: pos.symbol,
+                            side: 'SELL',
+                            amount_usd: pos.entryValueUsd || 80.00,
+                            pnl_usd: pnl,
+                            order_id: result.order_id
+                        })
+                    });
+                    await this.fetchPnlAnalytics();
+                } catch (e) {
+                    console.log("Error recording trade:", e);
+                }
             } else if (result.reason && !result.reason.includes("làm tròn bằng 0") && !result.reason.includes("insufficient")) {
                 this.addLog("WARNING", `⚠️ [GHI NHẬN BÁN] ${pos.symbol}: ${result.reason}. Đã cập nhật trên Dashboard.`);
             }
@@ -525,14 +653,14 @@ class TradingDashboard {
 
     getPortfolioValue() {
         const total = (this.portfolio.totalPortfolioUsd || this.portfolio.cash);
-        return total > 0 ? total : 411.81;
+        return total > 0 ? total : 411.39;
     }
 
     updatePortfolioMetrics() {
         const totalVal = this.getPortfolioValue();
         if (totalVal > this.portfolio.peakValue) this.portfolio.peakValue = totalVal;
 
-        const baseBal = this.sessionStartBalance !== null ? this.sessionStartBalance : 411.81;
+        const baseBal = this.sessionStartBalance !== null ? this.sessionStartBalance : 411.39;
         const sessionPnlUsd = totalVal - baseBal;
         const sessionPnlPct = baseBal > 0 ? ((sessionPnlUsd / baseBal) * 100) : 0.0;
 

@@ -206,6 +206,63 @@
                             </div>
                         </div>
                     </section>
+
+                    <!-- 📊 BÁO CÁO PNL HÀNG NGÀY & BIỂU ĐỒ 24H (v5.0 ENGINE) -->
+                    <section class="card margin-top pnl-analytics-section">
+                        <div class="section-header">
+                            <h2>📊 Báo Cáo Lời/Lỗ Hàng Ngày (T2 - CN) & Biểu Đồ Phân Bổ 24 Giờ</h2>
+                            <span class="badge badge-success">Lưu Trữ 60 Ngày Live</span>
+                        </div>
+
+                        <!-- Top Stat Summary Cards -->
+                        <div class="analytics-grid">
+                            <div class="pod-card">
+                                <div class="pod-title">Tổng Lợi Nhuận Tuần Này</div>
+                                <div class="metric-value text-success" id="statWeeklyPnl">+$4.81 USD</div>
+                            </div>
+                            <div class="pod-card">
+                                <div class="pod-title">Tỷ Lệ Thắng (Win Rate)</div>
+                                <div class="metric-value text-success" id="statWinRate">100.0%</div>
+                            </div>
+                            <div class="pod-card">
+                                <div class="pod-title">🏆 Ngày Lời Nhiều Nhất</div>
+                                <div class="metric-value text-success" id="statBestDay" style="font-size:16px;">+$1.89 USD</div>
+                            </div>
+                            <div class="pod-card">
+                                <div class="pod-title">📉 Ngày Lời Ít Nhất / Lỗ</div>
+                                <div class="metric-value text-secondary" id="statWorstDay" style="font-size:16px;">+$1.04 USD</div>
+                            </div>
+                        </div>
+
+                        <!-- 📈 Biểu Đồ Thời Gian 24 Giờ Hàng Ngày -->
+                        <div class="timeline-chart-container">
+                            <div class="chart-header">
+                                <span class="chart-title">⏱️ Biểu Đồ Khung Giờ Chốt Lời / Lỗ Trong Ngày (00:00 - 23:00)</span>
+                                <span class="font-mono text-muted" id="lblChartDate">Hôm Nay</span>
+                            </div>
+                            <div class="timeline-bars-wrapper" id="timelineBarsWrapper">
+                                <!-- Dynamic 24h Bars -->
+                            </div>
+                        </div>
+
+                        <!-- Bảng Thống Kê Chi Tiết 7 Ngày Trong Tuần (T2 -> CN) -->
+                        <div class="table-responsive">
+                            <table class="data-table" id="pnlWeeklyTable">
+                                <thead>
+                                    <tr>
+                                        <th>Ngày Trong Tuần</th>
+                                        <th>Ngày / Tháng</th>
+                                        <th>Số Lệnh Thắng / Thua</th>
+                                        <th>Tổng PnL ($)</th>
+                                        <th>Trạng Thái Ròng</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pnlWeeklyTableBody">
+                                    <!-- Dynamic Rows -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
                 </div>
             </div>
         </main>
@@ -244,6 +301,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=29.0"></script>
+    <script src="app.js?v=30.0"></script>
 </body>
 </html>

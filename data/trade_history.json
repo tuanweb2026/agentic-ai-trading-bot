@@ -1,0 +1,43 @@
+[
+  {
+    "order_id": "17610915144",
+    "symbol": "SOL/USDT",
+    "side": "SELL",
+    "amount_usd": 80.0,
+    "pnl_usd": 1.88,
+    "timestamp": 1787186994,
+    "date_str": "2026-08-20",
+    "hour": 15
+  },
+  {
+    "order_id": "8742823966",
+    "symbol": "ADA/USDT",
+    "side": "SELL",
+    "amount_usd": 80.0,
+    "pnl_usd": 1.04,
+    "timestamp": 1787186994,
+    "date_str": "2026-08-20",
+    "hour": 15
+  },
+  {
+    "order_id": "17617577413",
+    "symbol": "SOL/USDT",
+    "side": "SELL",
+    "amount_usd": 80.0,
+    "pnl_usd": 1.89,
+    "timestamp": 1787273394,
+    "date_str": "2026-08-21",
+    "hour": 9
+  },
+  {
+    "order_id": "test_order_99999",
+    "symbol": "SOL/USDT",
+    "side": "SELL",
+    "amount_usd": 80.0,
+    "pnl_usd": 2.15,
+    "timestamp": 1787359794,
+    "date_str": "2026-08-22",
+    "day_name": "Saturday",
+    "hour": 7
+  }
+]

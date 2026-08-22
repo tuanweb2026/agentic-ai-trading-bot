@@ -8,6 +8,7 @@ import sys
 sys.path.insert(0, os.path.dirname(__file__))
 
 from core.live_binance import LiveBinanceExchange
+from core.pnl_tracker import pnl_tracker
 from config.settings import settings
 
 PORT = 8000
@@ -48,6 +49,18 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 }
                 self.wfile.write(json.dumps(err_res).encode('utf-8'))
             return
+        elif self.path.startswith('/api/pnl-analytics'):
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            
+            try:
+                analytics = pnl_tracker.get_analytics()
+                self.wfile.write(json.dumps({"success": True, "data": analytics}).encode('utf-8'))
+            except Exception as e:
+                self.wfile.write(json.dumps({"success": False, "reason": str(e)}).encode('utf-8'))
+            return
         else:
             super().do_GET()
 
@@ -59,7 +72,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 payload = json.loads(body_bytes.decode('utf-8'))
                 action = payload.get('action') # 'BUY' or 'SELL'
                 symbol = payload.get('symbol') # e.g. 'BTC/USDT'
-                amount_usd = float(payload.get('amount_usd', 43.20))
+                amount_usd = float(payload.get('amount_usd', 80.00))
                 quantity = float(payload.get('quantity', 0.0))
 
                 live_exchange = LiveBinanceExchange()
@@ -93,23 +106,44 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(json.dumps({"status": "ERROR", "reason": str(e)}).encode('utf-8'))
             return
+
+        elif self.path.startswith('/api/record-trade'):
+            content_length = int(self.headers.get('Content-Length', 0))
+            body_bytes = self.rfile.read(content_length)
+            try:
+                payload = json.loads(body_bytes.decode('utf-8'))
+                symbol = payload.get('symbol', 'BTC/USDT')
+                side = payload.get('side', 'SELL')
+                amount_usd = float(payload.get('amount_usd', 80.00))
+                pnl_usd = float(payload.get('pnl_usd', 0.0))
+                order_id = str(payload.get('order_id', ''))
+
+                rec_res = pnl_tracker.record_trade(symbol, side, amount_usd, pnl_usd, order_id)
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps(rec_res).encode('utf-8'))
+            except Exception as e:
+                self.send_response(400)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": False, "reason": str(e)}).encode('utf-8'))
+            return
         else:
             self.send_response(404)
             self.end_headers()
 
 def run_server():
-    os.chdir(WEB_DIR)
-    with MultiThreadedTCPServer(("", PORT), Handler) as httpd:
-        print(f"\n=======================================================")
-        print(f"🚀 MULTI-THREADED AGENTIC AI TRADING WEB SERVER LIVE AT:")
-        print(f"👉 http://localhost:{PORT}")
-        print(f"⚡ HIGH PERFORMANCE MULTI-THREADING (NEVER FREEZE)")
-        print(f"🛑 SAFETY STOP THRESHOLD: MIN $350.00 USD PORTFOLIO STOP LOSS")
-        print(f"=======================================================\n")
-        try:
-            httpd.serve_forever()
-        except KeyboardInterrupt:
-            print("\nShutting down web dashboard server...")
+    os.chdir(os.path.dirname(__file__))
+    server_address = ('', PORT)
+    httpd = MultiThreadedTCPServer(server_address, Handler)
+    print(f"🚀 Server Agentic Trading Bot đang chạy tại http://127.0.0.1:{PORT}")
+    try:
+        httpd.serve_forever()
+    except KeyboardInterrupt:
+        print("\n🛑 Đã dừng Web Server.")
+        httpd.server_close()
 
 if __name__ == "__main__":
     run_server()
