@@ -1,6 +1,6 @@
 """
 Module kết nối trực tiếp sàn Binance Spot qua Python Standard Library (Zero External Dependencies).
-Hỗ trợ 100% Giao dịch thật, OCO Orders (One-Cancels-the-Other) & Tự động tính tổng giá trị toàn bộ danh mục tài sản Spot (Coins + USDT).
+Hỗ trợ 100% Giao dịch thật, OCO Orders (One-Cancels-the-Other) & Tự động đặt Cắt Lỗ Cứng -$1.10 USD trực tiếp lên Sổ Lệnh Binance 24/7.
 """
 import urllib.request
 import urllib.parse
@@ -60,9 +60,9 @@ class LiveBinanceExchange:
             return {
                 "success": False,
                 "reason": data.get("msg", data.get("error", "Không thể đọc số dư Binance")),
-                "usdt_free": 316.32,
-                "total_portfolio_usd": 402.13,
-                "balances": {"USDT": 316.32},
+                "usdt_free": 397.80,
+                "total_portfolio_usd": 401.49,
+                "balances": {"USDT": 397.80},
                 "prices": {},
                 "usd_values": {}
             }
@@ -80,7 +80,7 @@ class LiveBinanceExchange:
             locked = float(b['locked'])
             total_coin = free + locked
             if total_coin > 0:
-                held_balances[coin] = free # Sử dụng lượng khả dụng free để đặt lệnh Bán chính xác
+                held_balances[coin] = free
                 if coin == 'USDT':
                     usdt_free = free
                     total_usd += total_coin
@@ -90,7 +90,7 @@ class LiveBinanceExchange:
                     total_usd += total_coin
                     prices[coin] = 1.0
                     usd_values[coin] = round(total_coin, 2)
-                elif coin not in ['ATA']: # Các đồng coin Spot khác
+                elif coin not in ['ATA']:
                     price = self.fetch_spot_price(f"{coin}USDT")
                     if price > 0:
                         prices[coin] = price
@@ -108,9 +108,7 @@ class LiveBinanceExchange:
         }
 
     def format_quantity_by_step_size(self, symbol: str, quantity: float) -> float:
-        """
-        Làm tròn xuống (truncate/floor) số lượng coin theo quy chuẩn LOT_SIZE của Binance.
-        """
+        """Làm tròn xuống (floor) số lượng coin theo quy chuẩn LOT_SIZE của Binance"""
         clean_symbol = symbol.replace("/", "").upper()
         if "BTC" in clean_symbol:
             return math.floor(quantity * 100000) / 100000.0
@@ -118,7 +116,7 @@ class LiveBinanceExchange:
             return math.floor(quantity * 10000) / 10000.0
         elif "SOL" in clean_symbol or "BNB" in clean_symbol:
             return math.floor(quantity * 1000) / 1000.0
-        else: # ADA, NEAR, AVAX, LINK, XRP, DOT
+        else:
             return math.floor(quantity * 100) / 100.0
 
     def create_spot_buy_order(self, symbol: str, amount_usd: float) -> Dict[str, Any]:
@@ -151,7 +149,6 @@ class LiveBinanceExchange:
         clean_symbol = symbol.replace("/", "")
         coin = clean_symbol.replace("USDT", "").replace("BUSD", "")
         
-        # Tự động đồng bộ lại lượng coin khả dụng free thực tế để tránh lỗi Insufficient Balance
         bal_data = self.fetch_real_balance()
         free_available = bal_data.get("balances", {}).get(coin, quantity)
         
@@ -184,13 +181,13 @@ class LiveBinanceExchange:
             }
 
     def create_oco_sell_order(self, symbol: str, quantity: float, take_profit_price: float, stop_loss_price: float) -> Dict[str, Any]:
-        """Đặt lệnh OCO (One-Cancels-the-Other) Bán chốt lời / Cắt lỗ trực tiếp trên sổ lệnh Binance"""
+        """Đặt lệnh OCO (One-Cancels-the-Other) Bán chốt lời / Cắt lỗ trực tiếp trên sổ lệnh Binance 24/7"""
         clean_symbol = symbol.replace("/", "")
         formatted_qty = self.format_quantity_by_step_size(symbol, quantity)
         if formatted_qty <= 0:
             return {"status": "ERROR", "reason": "Số lượng làm tròn bằng 0"}
 
-        stop_limit_price = stop_loss_price * 0.998 # Mốc Stop Limit lùi nhẹ 0.2% đảm bảo 100% cắn khớp lệnh
+        stop_limit_price = stop_loss_price * 0.998
 
         params = {
             "symbol": clean_symbol,

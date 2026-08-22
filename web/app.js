@@ -1,4 +1,4 @@
-// Agentic AI Trading Dashboard v5.1 - Strict Spot Capital Protection (Zero Mid-Loss Panic Sell & Pure Binance Audit Sync)
+// Agentic AI Trading Dashboard v5.2 - Auto-Active 24/7 Stop Loss Engine & Zero Missed Cut-Loss
 
 class TradingDashboard {
     constructor() {
@@ -14,7 +14,7 @@ class TradingDashboard {
         this.targetCapitalRecoveryUsd = 432.47;
         this.minPortfolioStopThreshold = 350.00;
         
-        // 🚀 Cấu hình Chiến lược v5.1 Full Quant Trading Engine
+        // 🚀 Cấu hình Chiến lược v5.2 Full Quant Trading Engine
         this.baseOrderUsd = 80.00;
         this.takeProfitTargetUsd = 2.20; // Mốc kích hoạt chốt lời ròng ban đầu (+2.8%)
         this.stopLossTargetUsd = 1.10;   // Rủi ro tối đa -$1.10 USD / lệnh (1.4%)
@@ -37,15 +37,15 @@ class TradingDashboard {
 
         // Giá thị trường THẬT từ Binance API
         this.marketData = {
-            "BTC/USDT": { price: 77216.0, rsi: 48.5, zScore: 0.45, macdHist: 2.5, strainStatus: "NORMAL" },
-            "ETH/USDT": { price: 2432.9, rsi: 72.4, zScore: 2.15, macdHist: 1.2, strainStatus: "OVERSTRETCHED_UP" },
-            "SOL/USDT": { price: 93.36, rsi: 28.1, zScore: -2.35, macdHist: 0.8, strainStatus: "OVERSTRETCHED_DOWN" },
-            "BNB/USDT": { price: 694.5, rsi: 52.0, zScore: 0.65, macdHist: 0.5, strainStatus: "NORMAL" },
+            "BTC/USDT": { price: 77154.0, rsi: 48.5, zScore: 0.45, macdHist: 2.5, strainStatus: "NORMAL" },
+            "ETH/USDT": { price: 2435.4, rsi: 72.4, zScore: 2.15, macdHist: 1.2, strainStatus: "OVERSTRETCHED_UP" },
+            "SOL/USDT": { price: 92.97, rsi: 28.1, zScore: -2.35, macdHist: 0.8, strainStatus: "OVERSTRETCHED_DOWN" },
+            "BNB/USDT": { price: 694.4, rsi: 52.0, zScore: 0.65, macdHist: 0.5, strainStatus: "NORMAL" },
             "XRP/USDT": { price: 0.58, rsi: 76.2, zScore: 2.40, macdHist: -0.3, strainStatus: "OVERSTRETCHED_UP" },
-            "ADA/USDT": { price: 0.230, rsi: 26.5, zScore: -2.10, macdHist: 0.4, strainStatus: "OVERSTRETCHED_DOWN" },
-            "AVAX/USDT": { price: 7.64, rsi: 58.0, zScore: 0.90, macdHist: 0.1, strainStatus: "NORMAL" },
-            "NEAR/USDT": { price: 1.87, rsi: 44.0, zScore: -0.55, macdHist: -0.2, strainStatus: "NORMAL" },
-            "LINK/USDT": { price: 11.64, rsi: 68.0, zScore: 1.85, macdHist: 0.9, strainStatus: "NORMAL" },
+            "ADA/USDT": { price: 0.229, rsi: 26.5, zScore: -2.10, macdHist: 0.4, strainStatus: "OVERSTRETCHED_DOWN" },
+            "AVAX/USDT": { price: 7.65, rsi: 58.0, zScore: 0.90, macdHist: 0.1, strainStatus: "NORMAL" },
+            "NEAR/USDT": { price: 1.89, rsi: 44.0, zScore: -0.55, macdHist: -0.2, strainStatus: "NORMAL" },
+            "LINK/USDT": { price: 11.69, rsi: 68.0, zScore: 1.85, macdHist: 0.9, strainStatus: "NORMAL" },
             "DOT/USDT": { price: 6.45, rsi: 54.0, zScore: 0.85, macdHist: 0.2, strainStatus: "NORMAL" }
         };
 
@@ -62,7 +62,8 @@ class TradingDashboard {
             { id: "Pod-10-Trend-DOT", symbol: "DOT/USDT", strategy: "Spot Trend", sharpe: 1.12, signal: "NEUTRAL", reason: "[SPOT] Xu hướng bình thường." }
         ];
 
-        this.aiRunning = false;
+        // 🚀 TỰ ĐỘNG BẬT 100% AI TRADING NGAY KHI VÀO TRANG (KHÔNG CẦN BẤM NÚT KÍCH HOẠT)
+        this.aiRunning = true;
         this.timerSeconds = 30;
         this.timerInterval = null;
 
@@ -79,6 +80,17 @@ class TradingDashboard {
         this.renderMarketTable();
         this.renderPods();
         this.populateModalSymbols();
+
+        // Cập nhật trạng thái nút AI Active mặc định ngay trên UI
+        const btn = document.getElementById('btnToggleAI');
+        const lbl = document.getElementById('lblToggleAI');
+        const pulse = document.getElementById('aiStatusPulse');
+        const statusTxt = document.getElementById('aiStatusText');
+
+        if (btn) btn.className = "btn btn-secondary";
+        if (lbl) lbl.innerText = "Tạm Dừng AI";
+        if (pulse) pulse.className = "status-indicator live";
+        if (statusTxt) statusTxt.innerText = `🔴 AI v5.2 ACTIVE (TỰ ĐỘNG CẮT LỖ MỖI GIÂY)`;
     }
 
     bindEvents() {
@@ -212,6 +224,11 @@ class TradingDashboard {
 
                 this.portfolio.positions = syncedPositions;
                 this.renderAll();
+
+                // KÍCH HOẠT QUÉT CẮT LỖ VÀ CHỐT LỜI NGAY SAU KHI ĐỒNG BỘ VỊ THẾ
+                if (this.aiRunning) {
+                    this.checkAutoTakeProfitAndStopLoss();
+                }
             }
         } catch (e) {
             console.log("Error syncing balance:", e);
@@ -375,9 +392,9 @@ class TradingDashboard {
             if (btn) btn.className = "btn btn-secondary";
             if (lbl) lbl.innerText = "Tạm Dừng AI";
             if (pulse) pulse.className = "status-indicator live";
-            if (statusTxt) statusTxt.innerText = `🔴 AI v5.1 STRICT SPOT ENGINE ACTIVE (OTOCO + Trailing Stop 0.8%)`;
+            if (statusTxt) statusTxt.innerText = `🔴 AI v5.2 ACTIVE (TỰ ĐỘNG CẮT LỖ MỖI GIÂY)`;
 
-            this.addLog("DANGER", `🚀 BẮT ĐẦU V5.1 STRICT SPOT ENGINE! Cấm tiệt bán hoảng loạn khi lỗ vừa. Chỉ chốt lời +$2.20 USD hoặc cắt lỗ an toàn -$1.10 USD! Mốc vốn: $${this.sessionStartBalance.toFixed(2)} USD`);
+            this.addLog("DANGER", `🚀 BẮT ĐẦU V5.2 FULL QUANT ENGINE! Cắt lỗ tự động mỗi 1s ngay mốc -$1.10 USD. Mốc vốn: $${this.sessionStartBalance.toFixed(2)} USD`);
             
             this.runHeartbeatCycle();
         } else {
@@ -409,6 +426,7 @@ class TradingDashboard {
                 this.highlightPipelineStep(3, "30s Spot Execution: Đánh giá & Khớp lệnh OTOCO THẬT trên Binance...");
             }
 
+            // ⚡ KIỂM TRA QUÉT BÁN CẮT LỖ & CHỐT LỜI LIÊN TỤC MỖI GIÂY (1 SECOND TICK)
             if (this.aiRunning) {
                 this.checkAutoTakeProfitAndStopLoss();
             }
@@ -459,10 +477,7 @@ class TradingDashboard {
             if (pod.strategy.includes("Mean Reversion")) {
                 if (symData.zScore < -2.0 && symData.rsi < 35 && symData.macdHist > 0) {
                     pod.signal = "BUY";
-                    pod.reason = `🎯 [XÁC NHẬN KÉP v5.1] Nén Dây Thun (Z=${symData.zScore.toFixed(2)}, RSI=${symData.rsi.toFixed(1)}) + MACD Histogram Dương (${symData.macdHist}). KÍCH HOẠT MUA SPOT.`;
-                } else if (symData.zScore > 2.0 && symData.rsi > 65) {
-                    pod.signal = "SELL";
-                    pod.reason = `🎯 [CỰC ĐẠI BÁN] Quá mua (Z-Score = ${symData.zScore.toFixed(2)}). Đề xuất BÁN khi có lãi.`;
+                    pod.reason = `🎯 [XÁC NHẬN KÉP v5.2] Nén Dây Thun (Z=${symData.zScore.toFixed(2)}, RSI=${symData.rsi.toFixed(1)}) + MACD Histogram Dương (${symData.macdHist}). KÍCH HOẠT MUA SPOT.`;
                 } else {
                     pod.signal = "NEUTRAL";
                     pod.reason = `[BẢO TOÀN VỐN] Z-score = ${symData.zScore.toFixed(2)} bình thường. Đứng ngoài an toàn.`;
@@ -470,7 +485,7 @@ class TradingDashboard {
             } else {
                 if (symData.price > (symData.ema_20 || symData.price * 0.99) && symData.macdHist > 0.5) {
                     pod.signal = "BUY";
-                    pod.reason = `[SPOT TREND v5.1] Bứt phá xu hướng EMA20 + MACD Dương mạnh. Tín hiệu MUA SPOT.`;
+                    pod.reason = `[SPOT TREND v5.2] Bứt phá xu hướng EMA20 + MACD Dương mạnh. Tín hiệu MUA SPOT.`;
                 } else {
                     pod.signal = "NEUTRAL";
                     pod.reason = `[BẢO TOÀN VỐN] Thị trường tích lũy an toàn.`;
@@ -511,7 +526,7 @@ class TradingDashboard {
 
                         if (!existing) {
                             this.lastOrderTimestamps[pod.symbol] = now;
-                            await this.executeOrder(pod.symbol, pod.id, "BUY", orderValueUsd, price, "Binance v5.1 Full Quant Execution");
+                            await this.executeOrder(pod.symbol, pod.id, "BUY", orderValueUsd, price, "Binance v5.2 Full Quant Execution");
                             executedAny = true;
                         }
                     }
@@ -528,7 +543,7 @@ class TradingDashboard {
         this.renderAll();
     }
 
-    // 🛡️ BƯỚC 2: QUẢN LÝ KỶ LUẬT THẬT CHẶT - CẤM TIỆT BÁN HOẢNG LOẠN KHI LỖ VỪA
+    // 🛡️ BƯỚC 2: TỰ ĐỘNG CẮT LỖ KHẮT KHE CHÍNH XÁC KHI PNL <= -$1.10 USD (HOẶC GỬI OCO)
     async checkAutoTakeProfitAndStopLoss() {
         if (!this.aiRunning) return;
 
@@ -540,8 +555,9 @@ class TradingDashboard {
             const pnlAmt = pos.realPnl !== undefined ? pos.realPnl : ((pos.currentUsdValue || 80.0) - (pos.entryValueUsd || 80.0));
             const maxPnl = pos.maxPnlReached !== undefined ? pos.maxPnlReached : pnlAmt;
 
-            // 1. Cắt lỗ an toàn duy nhất khi PnL rớt sâu dưới -$1.10 USD
+            // 1. CẮT LỖ NGAY LẬP TỨC KHI PNL VỪA RỚT XUỐNG DƯỚI -$1.10 USD
             if (pnlAmt <= -1.10) {
+                this.addLog("DANGER", `🛡️ [CẮT LỖ KỶ LUẬT 24/7] ${pos.symbol} vừa chạm mốc -$1.10 USD (PnL hiện tại: -$${Math.abs(pnlAmt).toFixed(2)} USD). PHÁT LỆNH BÁN CẮT LỖ NGAY!`);
                 await this.closePosition(pos.symbol);
             } 
             // 2. Trailing Stop Spot: Khi PnL đỉnh cao nhất đã vượt mốc +$2.20 USD
@@ -572,7 +588,7 @@ class TradingDashboard {
             const result = await response.json();
 
             if (result.status === "SUCCESS") {
-                this.addLog("SUCCESS", `✅ [MUA SPOT THẬT v5.1] Đã MUA SPOT THẬT ${symbol} ($${amountUsd.toFixed(2)} USDT) | Order ID: ${result.order_id || 'OK'}`);
+                this.addLog("SUCCESS", `✅ [MUA SPOT THẬT v5.2] Đã MUA SPOT THẬT ${symbol} ($${amountUsd.toFixed(2)} USDT) | Order ID: ${result.order_id || 'OK'}`);
             } else {
                 this.addLog("WARNING", `⚠️ [GHI NHẬN LỆNH MUA] Mua Spot ${symbol}: ${result.reason || 'Lỗi API Binance'}.`);
             }
@@ -620,7 +636,6 @@ class TradingDashboard {
             if (result.status === "SUCCESS" && result.order_id) {
                 this.addLog("SUCCESS", `🎯 [BÁN CHỐT SPOT THẬT BINANCE] Đã bán chốt Spot ${pos.symbol} thu tiền về ví Binance USDT | PnL: ${pnlStr} | Order ID: ${result.order_id}`);
                 
-                // GHI NHẬN CHUẨN VÀO FILE BÁO CÁO PNL 60 NGÀY BỀN VỮNG
                 try {
                     await fetch('/api/record-trade', {
                         method: 'POST',
