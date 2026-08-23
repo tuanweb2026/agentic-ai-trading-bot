@@ -1,11 +1,11 @@
-// Agentic AI Trading Dashboard v5.7 - Real-Time Position Price Fluctuation Chart.js Engine
+// Agentic AI Trading Dashboard v5.8 - Smooth Sine-Wave Line Chart.js Position Engine
 
 class TradingDashboard {
     constructor() {
         this.portfolio = {
             initialBalance: 395.36,
             cash: 210.97,
-            totalPortfolioUsd: 394.06,
+            totalPortfolioUsd: 393.56,
             peakValue: 432.47,
             positions: [],
             tradeHistory: []
@@ -14,7 +14,7 @@ class TradingDashboard {
         this.targetCapitalRecoveryUsd = 432.47;
         this.minPortfolioStopThreshold = 350.00;
         
-        // 🚀 Cấu hình Chiến lược v5.7 Pure Core 10-Coin Engine
+        // 🚀 Cấu hình Chiến lược v5.8 Pure Core 10-Coin Engine
         this.baseOrderUsd = 80.00;
         this.takeProfitTargetUsd = 2.20; // Mốc kích hoạt chốt lời ròng ban đầu (+2.8%)
         this.stopLossTargetUsd = 1.10;   // Rủi ro tối đa -$1.10 USD / lệnh (1.4%)
@@ -25,13 +25,13 @@ class TradingDashboard {
         this.trailingStopCallbackPct = 0.8;
         this.trailingHighWaterMarks = {}; // Đỉnh PnL cao nhất đạt được của từng vị thế
 
-        // Instance Chart.js cho Biểu đồ Biến động Giá Mua vs Live
+        // Instance Chart.js cho Biểu đồ Sóng Hình Sin Dao Động Giá Mua vs Live
         this.positionChart = null;
 
         // Mốc lọc vảy coin lẻ (Dust Minimum): Phải lớn hơn $15.00 USD mới tính là Vị thế đang giữ
         this.minPositionValueUsd = 15.00;
 
-        this.sessionStartBalance = 394.06;
+        this.sessionStartBalance = 393.56;
         this.sessionStartTime = new Date().toLocaleTimeString();
 
         // Bảng Cooldown 15 phút (900,000 ms)
@@ -40,15 +40,15 @@ class TradingDashboard {
 
         // Giá thị trường THẬT từ Binance API (Tập trung 100% Bộ 10 Coin Core An Toàn)
         this.marketData = {
-            "BTC/USDT": { price: 76140.0, rsi: 48.5, zScore: 0.45, macdHist: 2.5, strainStatus: "NORMAL" },
-            "ETH/USDT": { price: 2375.3, rsi: 72.4, zScore: 2.15, macdHist: 1.2, strainStatus: "OVERSTRETCHED_UP" },
-            "SOL/USDT": { price: 92.66, rsi: 28.1, zScore: -2.35, macdHist: 0.8, strainStatus: "OVERSTRETCHED_DOWN" },
-            "BNB/USDT": { price: 684.1, rsi: 52.0, zScore: 0.65, macdHist: 0.5, strainStatus: "NORMAL" },
+            "BTC/USDT": { price: 76042.4, rsi: 48.5, zScore: 0.45, macdHist: 2.5, strainStatus: "NORMAL" },
+            "ETH/USDT": { price: 2373.5, rsi: 72.4, zScore: 2.15, macdHist: 1.2, strainStatus: "OVERSTRETCHED_UP" },
+            "SOL/USDT": { price: 92.19, rsi: 28.1, zScore: -2.35, macdHist: 0.8, strainStatus: "OVERSTRETCHED_DOWN" },
+            "BNB/USDT": { price: 682.6, rsi: 52.0, zScore: 0.65, macdHist: 0.5, strainStatus: "NORMAL" },
             "XRP/USDT": { price: 0.58, rsi: 76.2, zScore: 2.40, macdHist: -0.3, strainStatus: "OVERSTRETCHED_UP" },
-            "ADA/USDT": { price: 0.216, rsi: 26.5, zScore: -2.10, macdHist: 0.4, strainStatus: "OVERSTRETCHED_DOWN" },
-            "AVAX/USDT": { price: 7.34, rsi: 58.0, zScore: 0.90, macdHist: 0.1, strainStatus: "NORMAL" },
-            "NEAR/USDT": { price: 1.82, rsi: 44.0, zScore: -0.55, macdHist: -0.2, strainStatus: "NORMAL" },
-            "LINK/USDT": { price: 11.16, rsi: 68.0, zScore: 1.85, macdHist: 0.9, strainStatus: "NORMAL" },
+            "ADA/USDT": { price: 0.214, rsi: 26.5, zScore: -2.10, macdHist: 0.4, strainStatus: "OVERSTRETCHED_DOWN" },
+            "AVAX/USDT": { price: 7.31, rsi: 58.0, zScore: 0.90, macdHist: 0.1, strainStatus: "NORMAL" },
+            "NEAR/USDT": { price: 1.81, rsi: 44.0, zScore: -0.55, macdHist: -0.2, strainStatus: "NORMAL" },
+            "LINK/USDT": { price: 11.12, rsi: 68.0, zScore: 1.85, macdHist: 0.9, strainStatus: "NORMAL" },
             "DOT/USDT": { price: 6.45, rsi: 54.0, zScore: 0.85, macdHist: 0.2, strainStatus: "NORMAL" }
         };
 
@@ -93,7 +93,7 @@ class TradingDashboard {
         if (btn) btn.className = "btn btn-secondary";
         if (lbl) lbl.innerText = "Tạm Dừng AI";
         if (pulse) pulse.className = "status-indicator live";
-        if (statusTxt) statusTxt.innerText = `🔴 AI v5.7 ACTIVE (BIỂU ĐỒ SOI GIÁ MUA VS BINANCE LIVE)`;
+        if (statusTxt) statusTxt.innerText = `🔴 AI v5.8 ACTIVE (BIỂU ĐỒ SÓNG HÌNH SIN DƯỚI POD THUYẾT ĐỒ NHÓM)`;
     }
 
     bindEvents() {
@@ -143,7 +143,7 @@ class TradingDashboard {
             const data = await response.json();
             if (data.success) {
                 this.portfolio.cash = data.usdt_free;
-                const totalUsd = data.total_portfolio_usd > 0 ? data.total_portfolio_usd : 394.06;
+                const totalUsd = data.total_portfolio_usd > 0 ? data.total_portfolio_usd : 393.56;
                 this.portfolio.totalPortfolioUsd = totalUsd;
                 this.portfolio.initialBalance = totalUsd;
 
@@ -270,12 +270,11 @@ class TradingDashboard {
         }
     }
 
-    // 🚀 VẼ VÀ CẬP NHẬT BIỂU ĐỒ CHART.JS SOI GIÁ MUA SPOT VS GIÁ DAO ĐỘNG BINANCE LIVE
+    // 🚀 VẼ VÀ CẬP NHẬT BIỂU ĐỒ SÓNG HÌNH SIN CHART.JS UỐN MƯỢT SOI GIÁ MUA SPOT VS BINANCE LIVE
     renderPositionPriceChart() {
         const canvas = document.getElementById('positionPriceChart');
         if (!canvas) return;
 
-        // Nếu chưa có vị thế mở, hiển thị 3 coin tiêu biểu BTC, ETH, SOL để minh họa dao động
         let activeItems = [];
         if (this.portfolio.positions.length > 0) {
             activeItems = this.portfolio.positions.map(p => {
@@ -290,7 +289,7 @@ class TradingDashboard {
                 };
             });
         } else {
-            // Mẫu minh họa các coin tiêu biểu
+            // Mẫu minh họa sóng hình sin các coin tiêu biểu
             const sampleSyms = ["BTC/USDT", "ETH/USDT", "SOL/USDT"];
             activeItems = sampleSyms.map(sym => {
                 const p = this.marketData[sym] ? this.marketData[sym].price : 100.0;
@@ -310,32 +309,55 @@ class TradingDashboard {
         const liveColors = activeItems.map(i => i.livePrice >= i.entryPrice ? '#10b981' : '#ef4444');
 
         if (typeof Chart !== 'undefined') {
+            const ctx = canvas.getContext('2d');
+
+            // Tạo Gradient màu uốn sóng mượt
+            const gradientBlue = ctx.createLinearGradient(0, 0, 0, 300);
+            gradientBlue.addColorStop(0, 'rgba(59, 130, 246, 0.35)');
+            gradientBlue.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
+
+            const gradientGreen = ctx.createLinearGradient(0, 0, 0, 300);
+            gradientGreen.addColorStop(0, 'rgba(16, 185, 129, 0.35)');
+            gradientGreen.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
+
             if (this.positionChart) {
                 this.positionChart.data.labels = labels;
                 this.positionChart.data.datasets[0].data = entryPrices;
                 this.positionChart.data.datasets[1].data = livePrices;
-                this.positionChart.data.datasets[1].backgroundColor = liveColors;
+                this.positionChart.data.datasets[1].borderColor = liveColors[0] || '#10b981';
+                this.positionChart.data.datasets[1].pointBackgroundColor = liveColors[0] || '#10b981';
                 this.positionChart.update();
             } else {
-                const ctx = canvas.getContext('2d');
                 this.positionChart = new Chart(ctx, {
-                    type: 'bar',
+                    type: 'line',
                     data: {
                         labels: labels,
                         datasets: [
                             {
-                                label: 'Giá Mua Spot (Entry USD)',
+                                label: 'Đường Giá Mua Spot (Entry USD)',
                                 data: entryPrices,
-                                backgroundColor: '#3b82f6',
-                                borderRadius: 6,
-                                barPercentage: 0.4
+                                borderColor: '#3b82f6',
+                                backgroundColor: gradientBlue,
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.4, // 🌊 Đường uốn mượt hình sin
+                                pointRadius: 6,
+                                pointBackgroundColor: '#3b82f6',
+                                pointBorderColor: '#ffffff',
+                                pointBorderWidth: 2
                             },
                             {
-                                label: 'Giá Dao Động Binance Live (USD)',
+                                label: 'Sóng Dao Động Binance Live (USD)',
                                 data: livePrices,
-                                backgroundColor: liveColors,
-                                borderRadius: 6,
-                                barPercentage: 0.4
+                                borderColor: liveColors[0] || '#10b981',
+                                backgroundColor: gradientGreen,
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.4, // 🌊 Đường uốn mượt hình sin
+                                pointRadius: 6,
+                                pointBackgroundColor: liveColors[0] || '#10b981',
+                                pointBorderColor: '#ffffff',
+                                pointBorderWidth: 2
                             }
                         ]
                     },
@@ -550,15 +572,15 @@ class TradingDashboard {
 
         if (this.aiRunning) {
             const totalVal = this.getPortfolioValue();
-            this.sessionStartBalance = totalVal > 0 ? totalVal : 394.06;
+            this.sessionStartBalance = totalVal > 0 ? totalVal : 393.56;
             this.sessionStartTime = new Date().toLocaleTimeString();
 
             if (btn) btn.className = "btn btn-secondary";
             if (lbl) lbl.innerText = "Tạm Dừng AI";
             if (pulse) pulse.className = "status-indicator live";
-            if (statusTxt) statusTxt.innerText = `🔴 AI v5.7 PURE CORE ACTIVE (TẬP TRUNG 10 COIN AN TOÀN TRUYỀN THỐNG)`;
+            if (statusTxt) statusTxt.innerText = `🔴 AI v5.8 PURE CORE ACTIVE (TẬP TRUNG 10 COIN AN TOÀN TRUYỀN THỐNG)`;
 
-            this.addLog("DANGER", `🚀 BẮT ĐẦU V5.7 PURE CORE QUANT ENGINE! Kích hoạt Biểu đồ Soi Giá Mua Spot vs Live Binance! Mốc vốn: $${this.sessionStartBalance.toFixed(2)} USD`);
+            this.addLog("DANGER", `🚀 BẮT ĐẦU V5.8 PURE CORE QUANT ENGINE! Biểu đồ Sóng Hình Sin dưới Thuyết Đồ Nhóm! Mốc vốn: $${this.sessionStartBalance.toFixed(2)} USD`);
             
             this.runHeartbeatCycle();
         } else {
@@ -641,7 +663,7 @@ class TradingDashboard {
             if (pod.strategy.includes("Mean Reversion")) {
                 if (symData.zScore < -2.0 && symData.rsi < 35 && symData.macdHist > 0) {
                     pod.signal = "BUY";
-                    pod.reason = `🎯 [XÁC NHẬN KÉP v5.7] Nén Dây Thun (Z=${symData.zScore.toFixed(2)}, RSI=${symData.rsi.toFixed(1)}) + MACD Histogram Dương (${symData.macdHist}). KÍCH HOẠT MUA SPOT ${pod.symbol}.`;
+                    pod.reason = `🎯 [XÁC NHẬN KÉP v5.8] Nén Dây Thun (Z=${symData.zScore.toFixed(2)}, RSI=${symData.rsi.toFixed(1)}) + MACD Histogram Dương (${symData.macdHist}). KÍCH HOẠT MUA SPOT ${pod.symbol}.`;
                 } else {
                     pod.signal = "NEUTRAL";
                     pod.reason = `[BẢO TOÀN VỐN] Z-score = ${symData.zScore.toFixed(2)} bình thường. Đứng ngoài an toàn.`;
@@ -649,7 +671,7 @@ class TradingDashboard {
             } else {
                 if (symData.price > (symData.ema_20 || symData.price * 0.99) && symData.macdHist > 0.5) {
                     pod.signal = "BUY";
-                    pod.reason = `[SPOT TREND v5.7] Bứt phá xu hướng EMA20 + MACD Dương mạnh. Tín hiệu MUA SPOT.`;
+                    pod.reason = `[SPOT TREND v5.8] Bứt phá xu hướng EMA20 + MACD Dương mạnh. Tín hiệu MUA SPOT.`;
                 } else {
                     pod.signal = "NEUTRAL";
                     pod.reason = `[BẢO TOÀN VỐN] Thị trường tích lũy an toàn.`;
@@ -690,7 +712,7 @@ class TradingDashboard {
 
                         if (!existing) {
                             this.lastOrderTimestamps[pod.symbol] = now;
-                            await this.executeOrder(pod.symbol, pod.id, "BUY", orderValueUsd, price, "Binance v5.7 Full Quant Execution");
+                            await this.executeOrder(pod.symbol, pod.id, "BUY", orderValueUsd, price, "Binance v5.8 Full Quant Execution");
                             executedAny = true;
                         }
                     }
@@ -749,7 +771,7 @@ class TradingDashboard {
             const result = await response.json();
 
             if (result.status === "SUCCESS") {
-                this.addLog("SUCCESS", `✅ [MUA SPOT THẬT v5.7] Đã MUA SPOT THẬT ${symbol} ($${amountUsd.toFixed(2)} USDT) | Order ID: ${result.order_id || 'OK'}`);
+                this.addLog("SUCCESS", `✅ [MUA SPOT THẬT v5.8] Đã MUA SPOT THẬT ${symbol} ($${amountUsd.toFixed(2)} USDT) | Order ID: ${result.order_id || 'OK'}`);
             } else {
                 this.addLog("WARNING", `⚠️ [GHI NHẬN LỆNH MUA] Mua Spot ${symbol}: ${result.reason || 'Lỗi API Binance'}.`);
             }
@@ -829,14 +851,14 @@ class TradingDashboard {
 
     getPortfolioValue() {
         const total = (this.portfolio.totalPortfolioUsd || this.portfolio.cash);
-        return total > 0 ? total : 394.06;
+        return total > 0 ? total : 393.56;
     }
 
     updatePortfolioMetrics() {
         const totalVal = this.getPortfolioValue();
         if (totalVal > this.portfolio.peakValue) this.portfolio.peakValue = totalVal;
 
-        const baseBal = this.sessionStartBalance !== null ? this.sessionStartBalance : 394.06;
+        const baseBal = this.sessionStartBalance !== null ? this.sessionStartBalance : 393.56;
         const sessionPnlUsd = totalVal - baseBal;
         const sessionPnlPct = baseBal > 0 ? ((sessionPnlUsd / baseBal) * 100) : 0.0;
 
