@@ -10,11 +10,19 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from core.live_binance import LiveBinanceExchange
 from core.pnl_tracker import pnl_tracker
+from core.log_manager import log_manager
 
 PORT = 8000
 DIRECTORY = os.path.join(os.path.dirname(os.path.abspath(__file__)), "web")
 
 exchange = LiveBinanceExchange()
+
+# 🚀 ĐỐI SOÁT TỰ ĐỘNG LỊCH SỬ BINANCE & KHÔI PHỤC LOG KHI KHỞI ĐỘNG SERVER
+try:
+    synced = pnl_tracker.sync_from_binance_orders(exchange)
+    log_manager.add_log("SUCCESS", f"🚀 HỆ THỐNG KHỞI ĐỘNG LẠI: Đã khôi phục Live Feed & đối soát {synced} lệnh mới từ Binance API!")
+except Exception as e:
+    print("Startup sync error:", e)
 
 class CustomHandler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
@@ -40,6 +48,15 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
             data = pnl_tracker.get_analytics()
             self.wfile.write(json.dumps({"success": True, "data": data}).encode('utf-8'))
             return
+        elif parsed.path == '/api/system-logs':
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            
+            logs = log_manager.get_recent_logs(35)
+            self.wfile.write(json.dumps({"success": True, "logs": logs}).encode('utf-8'))
+            return
             
         return super().do_GET()
 
@@ -55,23 +72,19 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                 symbol = payload.get('symbol')
                 amount_usd = payload.get('amount_usd', 80.0)
                 quantity = payload.get('quantity', 0.0)
+                pnl_usd = payload.get('pnl_usd', 0.0)
                 
                 result = {"status": "ERROR", "reason": "Hành động không hợp lệ"}
                 
                 if action == 'BUY':
                     result = exchange.create_spot_buy_order(symbol, amount_usd)
+                    if result.get("status") == "SUCCESS":
+                        log_manager.add_log("SUCCESS", f"✅ [MUA SPOT THẬT] Đã MUA SPOT THẬT {symbol} (${amount_usd:.2f} USDT) | Order ID: {result.get('order_id')}")
                 elif action == 'SELL':
-                    result = exchange.create_spot_sell_order(symbol, quantity)
-                    # 🚀 NẾU LỆNH BÁN KHỚP THÀNH CÔNG -> TỰ ĐỘNG GHI NHẬN VÀO PNL ANALYTICS MÁY CHỦ
-                    if result.get("status") == "SUCCESS" and result.get("order_id"):
-                        pnl_usd = payload.get("pnl_usd", 0.0)
-                        pnl_tracker.record_trade(
-                            symbol=symbol,
-                            side="SELL",
-                            amount_usd=amount_usd,
-                            pnl_usd=pnl_usd,
-                            order_id=str(result["order_id"])
-                        )
+                    result = exchange.create_spot_sell_order(symbol, quantity, pnl_usd=pnl_usd, amount_usd=amount_usd)
+                    if result.get("status") == "SUCCESS":
+                        pnl_str = f"+${pnl_usd:.2f}" if pnl_usd >= 0 else f"-${abs(pnl_usd):.2f}"
+                        log_manager.add_log("SUCCESS", f"🎯 [BÁN CHỐT SPOT THẬT] Đã bán chốt Spot {symbol} | PnL: {pnl_str} | Order ID: {result.get('order_id')}")
 
                 self.send_response(200)
                 self.send_header('Content-type', 'application/json')

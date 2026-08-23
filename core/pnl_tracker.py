@@ -28,7 +28,7 @@ class PnLTracker:
         except Exception as e:
             print("Error saving trades:", e)
 
-    def record_trade(self, symbol: str, side: str, amount_usd: float, pnl_usd: float, order_id: str) -> Dict[str, Any]:
+    def record_trade(self, symbol: str, side: str, amount_usd: float, pnl_usd: float, order_id: str, custom_timestamp: int = None) -> Dict[str, Any]:
         """Ghi nhận lệnh giao dịch đã đóng. Nếu Order ID đã tồn tại với PnL=0, tự động cập nhật PnL thực tế."""
         order_id_str = str(order_id)
         if not order_id_str:
@@ -45,7 +45,7 @@ class PnLTracker:
                     return {"success": True, "updated": True, "trade": t}
                 return {"success": False, "reason": "Lệnh đã tồn tại trong lịch sử"}
 
-        now = datetime.now()
+        now = datetime.fromtimestamp(custom_timestamp) if custom_timestamp else datetime.now()
         timestamp = int(now.timestamp())
         date_str = now.strftime("%Y-%m-%d")
         day_name = now.strftime("%A")
@@ -66,6 +66,48 @@ class PnLTracker:
         self.trades.append(trade)
         self._save_trades()
         return {"success": True, "trade": trade}
+
+    def sync_from_binance_orders(self, exchange_instance) -> int:
+        """
+        Tự động đối soát lịch sử lệnh từ Binance API khi Server khởi động lại.
+        Đảm bảo không bỏ sót bất kỳ lệnh bán chốt lời / cắt lỗ nào!
+        """
+        symbols = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT", "ADAUSDT", "AVAXUSDT", "NEARUSDT", "LINKUSDT", "DOTUSDT"]
+        synced_count = 0
+
+        # Lấy mốc 7 ngày trước
+        seven_days_ago_ms = int((time.time() - 7 * 86400) * 1000)
+
+        for sym in symbols:
+            try:
+                res = exchange_instance._signed_request("GET", "/api/v3/allOrders", {"symbol": sym, "startTime": seven_days_ago_ms, "limit": 50})
+                if isinstance(res, list):
+                    for o in res:
+                        if o.get("status") == "FILLED" and o.get("side") == "SELL":
+                            oid_str = str(o.get("orderId"))
+                            quote_qty = float(o.get("cummulativeQuoteQty", 0.0))
+                            formatted_sym = f"{sym.replace('USDT', '')}/USDT"
+                            order_time_sec = int(o.get("time", time.time() * 1000) / 1000)
+
+                            # Kiểm tra xem Order ID đã có trong database chưa
+                            existing = next((t for t in self.trades if str(t.get("order_id")) == oid_str), None)
+                            if not existing:
+                                # Tính PnL sơ bộ dựa trên mốc vào lệnh tiêu chuẩn
+                                base_usd = 100.0 if "BTC" in sym or "ETH" in sym else 80.0
+                                est_pnl = quote_qty - base_usd
+                                self.record_trade(
+                                    symbol=formatted_sym,
+                                    side="SELL",
+                                    amount_usd=base_usd,
+                                    pnl_usd=est_pnl,
+                                    order_id=oid_str,
+                                    custom_timestamp=order_time_sec
+                                )
+                                synced_count += 1
+            except Exception as e:
+                print(f"Error syncing Binance orders for {sym}:", e)
+
+        return synced_count
 
     def get_analytics(self) -> Dict[str, Any]:
         """Tổng hợp phân tích PnL hàng ngày (T2 -> CN), Biểu đồ 24h và Thống kê 60 ngày"""
