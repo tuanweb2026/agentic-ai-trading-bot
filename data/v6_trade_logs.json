@@ -1,0 +1,14 @@
+[
+  {
+    "order_id": "v6_test_order_001",
+    "symbol": "ETH/USDT",
+    "side": "SELL",
+    "amount_usd": 100.0,
+    "pnl_usd": 0.75,
+    "timestamp": 1787489756,
+    "date_str": "2026-08-23",
+    "day_name": "Sunday",
+    "hour": 19,
+    "version": "v6.0"
+  }
+]

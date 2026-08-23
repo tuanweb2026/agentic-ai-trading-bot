@@ -1920,5 +1920,50 @@
     "date_str": "2026-08-23",
     "day_name": "Sunday",
     "hour": 13
+  },
+  {
+    "order_id": "49250399417",
+    "symbol": "ETH/USDT",
+    "side": "SELL",
+    "amount_usd": 100,
+    "pnl_usd": 1.27,
+    "timestamp": 1787474698,
+    "date_str": "2026-08-23",
+    "day_name": "Sunday",
+    "hour": 15
+  },
+  {
+    "order_id": "17647925723",
+    "symbol": "SOL/USDT",
+    "side": "SELL",
+    "amount_usd": 80,
+    "pnl_usd": 0.95,
+    "timestamp": 1787474704,
+    "date_str": "2026-08-23",
+    "day_name": "Sunday",
+    "hour": 15
+  },
+  {
+    "order_id": "17648847251",
+    "symbol": "SOL/USDT",
+    "side": "SELL",
+    "amount_usd": 80,
+    "pnl_usd": 1.01,
+    "timestamp": 1787488522,
+    "date_str": "2026-08-23",
+    "day_name": "Sunday",
+    "hour": 19
+  },
+  {
+    "order_id": "v6_test_order_001",
+    "symbol": "ETH/USDT",
+    "side": "SELL",
+    "amount_usd": 100.0,
+    "pnl_usd": 0.75,
+    "timestamp": 1787489756,
+    "date_str": "2026-08-23",
+    "day_name": "Sunday",
+    "hour": 19,
+    "version": "v6.0"
   }
 ]

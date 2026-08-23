@@ -5,43 +5,63 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, List
 
 class PnLTracker:
-    def __init__(self, data_file: str = None):
+    def __init__(self, data_file: str = None, v6_data_file: str = None):
         if not data_file:
             data_file = os.path.join(os.path.dirname(__file__), "..", "data", "trade_history.json")
-        self.data_file = os.path.abspath(data_file)
-        os.makedirs(os.path.dirname(self.data_file), exist_ok=True)
-        self.trades = self._load_trades()
+        if not v6_data_file:
+            v6_data_file = os.path.join(os.path.dirname(__file__), "..", "data", "v6_trade_logs.json")
 
-    def _load_trades(self) -> List[Dict[str, Any]]:
-        if os.path.exists(self.data_file):
+        self.data_file = os.path.abspath(data_file)
+        self.v6_data_file = os.path.abspath(v6_data_file)
+
+        os.makedirs(os.path.dirname(self.data_file), exist_ok=True)
+        self.trades = self._load_json(self.data_file)
+        self.v6_trades = self._load_json(self.v6_data_file)
+
+    def _load_json(self, filepath: str) -> List[Dict[str, Any]]:
+        if os.path.exists(filepath):
             try:
-                with open(self.data_file, "r", encoding="utf-8") as f:
+                with open(filepath, "r", encoding="utf-8") as f:
                     return json.load(f)
             except Exception:
                 return []
         return []
 
-    def _save_trades(self):
+    def _save_json(self, filepath: str, data: List[Dict[str, Any]]):
         try:
-            with open(self.data_file, "w", encoding="utf-8") as f:
-                json.dump(self.trades, f, indent=2, ensure_ascii=False)
+            with open(filepath, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2, ensure_ascii=False)
         except Exception as e:
-            print("Error saving trades:", e)
+            print(f"Error saving to {filepath}:", e)
 
-    def record_trade(self, symbol: str, side: str, amount_usd: float, pnl_usd: float, order_id: str, custom_timestamp: int = None) -> Dict[str, Any]:
-        """Ghi nhận lệnh giao dịch đã đóng. Nếu Order ID đã tồn tại với PnL=0, tự động cập nhật PnL thực tế."""
+    def record_trade(self, symbol: str, side: str, amount_usd: float, pnl_usd: float, order_id: str, custom_timestamp: int = None, version: str = "v6.0") -> Dict[str, Any]:
+        """
+        Ghi nhận lệnh giao dịch đã đóng. 
+        Đánh dấu nhãn 'version': 'v6.0' và lưu riêng vào `data/v6_trade_logs.json` để phục vụ báo cáo 48h.
+        """
         order_id_str = str(order_id)
         if not order_id_str:
             return {"success": False, "reason": "Order ID rỗng"}
 
-        # 🚀 KIỂM TRA XEM ORDER ID ĐÃ TỒN TẠI TRƯỚC ĐÓ CHƯA
+        # Kiểm tra xem Order ID đã tồn tại chưa
         for t in self.trades:
             if str(t.get("order_id")) == order_id_str:
                 if t.get("pnl_usd", 0.0) == 0.0 and pnl_usd != 0.0:
                     t["pnl_usd"] = round(pnl_usd, 2)
                     if amount_usd > 0:
                         t["amount_usd"] = round(amount_usd, 2)
-                    self._save_trades()
+                    t["version"] = version
+                    self._save_json(self.data_file, self.trades)
+                    
+                    # Cập nhật trong danh sách v6 nếu có
+                    for v6_t in self.v6_trades:
+                        if str(v6_t.get("order_id")) == order_id_str:
+                            v6_t["pnl_usd"] = round(pnl_usd, 2)
+                            break
+                    else:
+                        self.v6_trades.append(t)
+                    self._save_json(self.v6_data_file, self.v6_trades)
+
                     return {"success": True, "updated": True, "trade": t}
                 return {"success": False, "reason": "Lệnh đã tồn tại trong lịch sử"}
 
@@ -60,22 +80,24 @@ class PnLTracker:
             "timestamp": timestamp,
             "date_str": date_str,
             "day_name": day_name,
-            "hour": hour
+            "hour": hour,
+            "version": version
         }
 
         self.trades.append(trade)
-        self._save_trades()
+        self._save_json(self.data_file, self.trades)
+
+        self.v6_trades.append(trade)
+        self._save_json(self.v6_data_file, self.v6_trades)
+
         return {"success": True, "trade": trade}
 
     def sync_from_binance_orders(self, exchange_instance) -> int:
         """
         Tự động đối soát lịch sử lệnh từ Binance API khi Server khởi động lại.
-        Đảm bảo không bỏ sót bất kỳ lệnh bán chốt lời / cắt lỗ nào!
         """
         symbols = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT", "ADAUSDT", "AVAXUSDT", "NEARUSDT", "LINKUSDT", "DOTUSDT"]
         synced_count = 0
-
-        # Lấy mốc 7 ngày trước
         seven_days_ago_ms = int((time.time() - 7 * 86400) * 1000)
 
         for sym in symbols:
@@ -89,10 +111,8 @@ class PnLTracker:
                             formatted_sym = f"{sym.replace('USDT', '')}/USDT"
                             order_time_sec = int(o.get("time", time.time() * 1000) / 1000)
 
-                            # Kiểm tra xem Order ID đã có trong database chưa
                             existing = next((t for t in self.trades if str(t.get("order_id")) == oid_str), None)
                             if not existing:
-                                # Tính PnL sơ bộ dựa trên mốc vào lệnh tiêu chuẩn
                                 base_usd = 100.0 if "BTC" in sym or "ETH" in sym else 80.0
                                 est_pnl = quote_qty - base_usd
                                 self.record_trade(
@@ -101,7 +121,8 @@ class PnLTracker:
                                     amount_usd=base_usd,
                                     pnl_usd=est_pnl,
                                     order_id=oid_str,
-                                    custom_timestamp=order_time_sec
+                                    custom_timestamp=order_time_sec,
+                                    version="v6.0"
                                 )
                                 synced_count += 1
             except Exception as e:
@@ -118,7 +139,13 @@ class PnLTracker:
         win_rate_pct = round((len(wins) / total_trades * 100), 1) if total_trades > 0 else 100.0
         total_pnl_usd = round(sum(t.get("pnl_usd", 0.0) for t in self.trades), 2)
 
-        # Tính toán 7 ngày trong tuần hiện tại (từ Thứ 2 đến Chủ Nhật)
+        # Thống kê riêng cho v6.0
+        v6_total = len(self.v6_trades)
+        v6_wins = [t for t in self.v6_trades if t.get("pnl_usd", 0.0) > 0]
+        v6_losses = [t for t in self.v6_trades if t.get("pnl_usd", 0.0) < 0]
+        v6_win_rate = round((len(v6_wins) / v6_total * 100), 1) if v6_total > 0 else 100.0
+        v6_total_pnl = round(sum(t.get("pnl_usd", 0.0) for t in self.v6_trades), 2)
+
         today = datetime.now().date()
         start_of_week = today - timedelta(days=today.weekday())
 
@@ -152,7 +179,6 @@ class PnLTracker:
                 "hourly": hourly_map
             })
 
-        # Phân tích ngày hôm nay
         today_str = today.strftime("%Y-%m-%d")
         today_trades = [t for t in self.trades if t.get("date_str") == today_str]
         today_pnl = round(sum(t.get("pnl_usd", 0.0) for t in today_trades), 2)
@@ -171,7 +197,6 @@ class PnLTracker:
             "hourly": today_hourly
         }
 
-        # Tìm ngày lời nhất (Best Day) và ngày lời ít nhất / lỗ nhất (Worst Day)
         days_grouped = {}
         for t in self.trades:
             d_str = t.get("date_str")
@@ -210,6 +235,13 @@ class PnLTracker:
             "total_trades": total_trades,
             "win_rate_pct": win_rate_pct,
             "total_pnl_usd": total_pnl_usd,
+            "v6_analytics": {
+                "v6_total_trades": v6_total,
+                "v6_win_rate_pct": v6_win_rate,
+                "v6_total_pnl_usd": v6_total_pnl,
+                "v6_wins": len(v6_wins),
+                "v6_losses": len(v6_losses)
+            },
             "weekly_pnl_usd": round(weekly_pnl, 2),
             "weekly_days": weekly_days,
             "today": today_summary,
