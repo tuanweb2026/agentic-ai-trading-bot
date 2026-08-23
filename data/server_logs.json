@@ -4,5 +4,11 @@
     "time": "12:56:49",
     "message": "Test log persistence line 1",
     "timestamp": 1787464609
+  },
+  {
+    "type": "SUCCESS",
+    "time": "12:57:01",
+    "message": "🚀 HỆ THỐNG KHỞI ĐỘNG LẠI: Đã khôi phục Live Feed & đối soát 154 lệnh mới từ Binance API!",
+    "timestamp": 1787464621
   }
 ]
