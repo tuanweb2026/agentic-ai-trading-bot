@@ -153,6 +153,18 @@ class TradingDashboard {
                     }
                 }
 
+                if (data.indicators) {
+                    for (let sym in data.indicators) {
+                        if (this.marketData[sym]) {
+                            this.marketData[sym].rsi = data.indicators[sym].rsi;
+                            this.marketData[sym].zScore = data.indicators[sym].z_score;
+                            this.marketData[sym].macdHist = data.indicators[sym].macd;
+                            this.marketData[sym].ema_20 = data.indicators[sym].ema_20;
+                            this.marketData[sym].strainStatus = data.indicators[sym].status;
+                        }
+                    }
+                }
+
                 if (this.sessionStartBalance === null || this.sessionStartBalance < 100) {
                     this.sessionStartBalance = totalUsd;
                     this.sessionStartTime = new Date().toLocaleTimeString();

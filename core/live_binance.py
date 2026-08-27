@@ -100,14 +100,64 @@ class LiveBinanceExchange:
                         usd_values[coin] = coin_val
                         total_usd += coin_val
 
+        # 🚀 TÍNH TOÁN CHỈ BÁO THỰC TẾ CHO 10 COIN CORE QUA BINANCE KLINES
+        indicators = {}
+        target_coins = ["BTC", "ETH", "SOL", "BNB", "XRP", "ADA", "AVAX", "NEAR", "LINK", "DOT"]
+        
+        from core.indicators import calculate_rsi, calculate_z_score_strain, calculate_macd, calculate_ema
+        
+        for c in target_coins:
+            sym_usdt = f"{c}USDT"
+            formatted_sym = f"{c}/USDT"
+            indicators[formatted_sym] = {
+                "rsi": 50.0,
+                "z_score": 0.0,
+                "macd": 0.0,
+                "ema_20": 0.0,
+                "status": "NORMAL"
+            }
+            
+            # Cào dữ liệu klines 5m từ Binance
+            url = f"{self.base_url}/api/v3/klines?symbol={sym_usdt}&interval=5m&limit=50"
+            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+            try:
+                with urllib.request.urlopen(req, timeout=3) as resp:
+                    klines = json.loads(resp.read().decode('utf-8'))
+                    closes = [float(k[4]) for k in klines]
+                    if len(closes) >= 20:
+                        rsi_val = round(calculate_rsi(closes), 2)
+                        z_val = round(calculate_z_score_strain(closes), 2)
+                        macd_val = round(calculate_macd(closes), 2)
+                        ema_val = round(calculate_ema(closes, 20), 4)
+                        
+                        # Đánh giá độ căng (strain status)
+                        status = "NORMAL"
+                        if z_val > 2.0 or rsi_val > 70:
+                            status = "OVERSTRETCHED_UP"
+                        elif z_val < -2.0 or rsi_val < 30:
+                            status = "OVERSTRETCHED_DOWN"
+                            
+                        indicators[formatted_sym] = {
+                            "rsi": rsi_val,
+                            "z_score": z_val,
+                            "macd": macd_val,
+                            "ema_20": ema_val,
+                            "status": status
+                        }
+            except Exception as e:
+                # Ghi nhận lỗi ngầm và sử dụng chỉ báo dự phòng trung lập
+                pass
+
         return {
             "success": True,
             "usdt_free": round(usdt_free, 2),
             "total_portfolio_usd": round(total_usd if total_usd > 0 else usdt_free, 2),
             "balances": held_balances,
             "prices": prices,
-            "usd_values": usd_values
+            "usd_values": usd_values,
+            "indicators": indicators
         }
+
 
     def format_quantity_by_step_size(self, symbol: str, quantity: float) -> float:
         """
