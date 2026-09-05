@@ -1,191 +1,5 @@
 [
   {
-    "type": "INFO",
-    "time": "12:56:49",
-    "message": "Test log persistence line 1",
-    "timestamp": 1787464609
-  },
-  {
-    "type": "SUCCESS",
-    "time": "12:57:01",
-    "message": "🚀 HỆ THỐNG KHỞI ĐỘNG LẠI: Đã khôi phục Live Feed & đối soát 154 lệnh mới từ Binance API!",
-    "timestamp": 1787464621
-  },
-  {
-    "type": "SUCCESS",
-    "time": "13:06:04",
-    "message": "🚀 HỆ THỐNG KHỞI ĐỘNG LẠI: Đã khôi phục Live Feed & đối soát 0 lệnh mới từ Binance API!",
-    "timestamp": 1787465164
-  },
-  {
-    "type": "SUCCESS",
-    "time": "13:08:10",
-    "message": "🚀 HỆ THỐNG KHỞI ĐỘNG LẠI: Đã khôi phục Live Feed & đối soát 0 lệnh mới từ Binance API!",
-    "timestamp": 1787465290
-  },
-  {
-    "type": "SUCCESS",
-    "time": "13:10:13",
-    "message": "🎯 [BÁN CHỐT SPOT THẬT] Đã bán chốt Spot SOL/USDT | PnL: -$1.12 | Order ID: 17647103618",
-    "timestamp": 1787465413
-  },
-  {
-    "type": "SUCCESS",
-    "time": "13:10:35",
-    "message": "🚀 HỆ THỐNG KHỞI ĐỘNG LẠI: Đã khôi phục Live Feed & đối soát 0 lệnh mới từ Binance API!",
-    "timestamp": 1787465435
-  },
-  {
-    "type": "SUCCESS",
-    "time": "13:11:22",
-    "message": "✅ [MUA SPOT THẬT] Đã MUA SPOT THẬT SOL/USDT ($80.00 USDT) | Order ID: 17647114119",
-    "timestamp": 1787465482
-  },
-  {
-    "type": "SUCCESS",
-    "time": "15:44:58",
-    "message": "🎯 [BÁN CHỐT SPOT THẬT] Đã bán chốt Spot ETH/USDT | PnL: +$1.27 | Order ID: 49250399417",
-    "timestamp": 1787474698
-  },
-  {
-    "type": "SUCCESS",
-    "time": "15:45:04",
-    "message": "🎯 [BÁN CHỐT SPOT THẬT] Đã bán chốt Spot SOL/USDT | PnL: +$0.95 | Order ID: 17647925723",
-    "timestamp": 1787474704
-  },
-  {
-    "type": "SUCCESS",
-    "time": "15:45:11",
-    "message": "✅ [MUA SPOT THẬT] Đã MUA SPOT THẬT ETH/USDT ($100.00 USDT) | Order ID: 49250403308",
-    "timestamp": 1787474711
-  },
-  {
-    "type": "SUCCESS",
-    "time": "15:45:13",
-    "message": "✅ [MUA SPOT THẬT] Đã MUA SPOT THẬT SOL/USDT ($80.00 USDT) | Order ID: 17647927037",
-    "timestamp": 1787474713
-  },
-  {
-    "type": "SUCCESS",
-    "time": "17:31:25",
-    "message": "🚀 HỆ THỐNG KHỞI ĐỘNG LẠI: Đã khôi phục Live Feed & đối soát 0 lệnh mới từ Binance API!",
-    "timestamp": 1787481085
-  },
-  {
-    "type": "SUCCESS",
-    "time": "19:35:22",
-    "message": "🎯 [BÁN CHỐT SPOT THẬT] Đã bán chốt Spot SOL/USDT | PnL: +$1.01 | Order ID: 17648847251",
-    "timestamp": 1787488522
-  },
-  {
-    "type": "SUCCESS",
-    "time": "19:35:45",
-    "message": "✅ [MUA SPOT THẬT] Đã MUA SPOT THẬT SOL/USDT ($80.00 USDT) | Order ID: 17648848316",
-    "timestamp": 1787488545
-  },
-  {
-    "type": "SUCCESS",
-    "time": "19:56:06",
-    "message": "🚀 HỆ THỐNG KHỞI ĐỘNG LẠI: Đã khôi phục Live Feed & đối soát 0 lệnh mới từ Binance API!",
-    "timestamp": 1787489766
-  },
-  {
-    "type": "SUCCESS",
-    "time": "20:18:21",
-    "message": "🎯 [BÁN CHỐT SPOT THẬT] Đã bán chốt Spot ETH/USDT | PnL: +$1.51 | Order ID: 49254819574",
-    "timestamp": 1787491101
-  },
-  {
-    "type": "SUCCESS",
-    "time": "20:21:31",
-    "message": "✅ [MUA SPOT THẬT] Đã MUA SPOT THẬT ETH/USDT ($100.00 USDT) | Order ID: 49255285391",
-    "timestamp": 1787491291
-  },
-  {
-    "type": "SUCCESS",
-    "time": "21:17:27",
-    "message": "🎯 [BÁN CHỐT SPOT THẬT] Đã bán chốt Spot SOL/USDT | PnL: +$0.76 | Order ID: 17649468071",
-    "timestamp": 1787494647
-  },
-  {
-    "type": "SUCCESS",
-    "time": "21:17:54",
-    "message": "✅ [MUA SPOT THẬT] Đã MUA SPOT THẬT SOL/USDT ($80.00 USDT) | Order ID: 17649471327",
-    "timestamp": 1787494674
-  },
-  {
-    "type": "SUCCESS",
-    "time": "22:18:18",
-    "message": "🎯 [BÁN CHỐT SPOT THẬT] Đã bán chốt Spot ETH/USDT | PnL: -$1.12 | Order ID: 49260234256",
-    "timestamp": 1787498298
-  },
-  {
-    "type": "SUCCESS",
-    "time": "22:19:04",
-    "message": "✅ [MUA SPOT THẬT] Đã MUA SPOT THẬT ETH/USDT ($100.00 USDT) | Order ID: 49260256213",
-    "timestamp": 1787498344
-  },
-  {
-    "type": "SUCCESS",
-    "time": "22:38:50",
-    "message": "🚀 HỆ THỐNG KHỞI ĐỘNG LẠI: Đã khôi phục Live Feed & đối soát 0 lệnh mới từ Binance API!",
-    "timestamp": 1787499530
-  },
-  {
-    "type": "SUCCESS",
-    "time": "23:35:10",
-    "message": "🎯 [BÁN CHỐT SPOT THẬT] Đã bán chốt Spot ETH/USDT | PnL: +$0.76 | Order ID: 49262133984",
-    "timestamp": 1787502910
-  },
-  {
-    "type": "SUCCESS",
-    "time": "23:38:37",
-    "message": "✅ [MUA SPOT THẬT] Đã MUA SPOT THẬT ETH/USDT ($100.00 USDT) | Order ID: 49262201943",
-    "timestamp": 1787503117
-  },
-  {
-    "type": "SUCCESS",
-    "time": "04:35:09",
-    "message": "🎯 [BÁN CHỐT SPOT THẬT] Đã bán chốt Spot ETH/USDT | PnL: +$0.91 | Order ID: 49267843206",
-    "timestamp": 1787520909
-  },
-  {
-    "type": "SUCCESS",
-    "time": "05:05:07",
-    "message": "✅ [MUA SPOT THẬT] Đã MUA SPOT THẬT ETH/USDT ($100.00 USDT) | Order ID: 49269226862",
-    "timestamp": 1787522707
-  },
-  {
-    "type": "SUCCESS",
-    "time": "07:38:27",
-    "message": "🚀 HỆ THỐNG KHỞI ĐỘNG LẠI: Đã khôi phục Live Feed & đối soát 0 lệnh mới từ Binance API!",
-    "timestamp": 1787531907
-  },
-  {
-    "type": "SUCCESS",
-    "time": "07:45:26",
-    "message": "🎯 [BÁN CHỐT SPOT THẬT] Đã bán chốt Spot SOL/USDT | PnL: -$1.15 | Order ID: 17653134614",
-    "timestamp": 1787532326
-  },
-  {
-    "type": "SUCCESS",
-    "time": "07:46:20",
-    "message": "✅ [MUA SPOT THẬT] Đã MUA SPOT THẬT SOL/USDT ($80.00 USDT) | Order ID: 17653146774",
-    "timestamp": 1787532380
-  },
-  {
-    "type": "SUCCESS",
-    "time": "07:56:57",
-    "message": "🎯 [BÁN CHỐT SPOT THẬT] Đã bán chốt Spot SOL/USDT | PnL: +$0.79 | Order ID: 17653259995",
-    "timestamp": 1787533017
-  },
-  {
-    "type": "SUCCESS",
-    "time": "08:15:31",
-    "message": "✅ [MUA SPOT THẬT] Đã MUA SPOT THẬT SOL/USDT ($80.00 USDT) | Order ID: 17653454660",
-    "timestamp": 1787534131
-  },
-  {
     "type": "SUCCESS",
     "time": "10:59:35",
     "message": "🎯 [BÁN CHỐT SPOT THẬT] Đã bán chốt Spot ETH/USDT | PnL: -$1.24 | Order ID: 49278851626",
@@ -586,5 +400,203 @@
     "time": "08:07:07",
     "message": "🚀 HỆ THỐNG KHỞI ĐỘNG LẠI: Đã khôi phục Live Feed & đối soát 0 lệnh mới từ Binance API!",
     "timestamp": 1787792827
+  },
+  {
+    "type": "SUCCESS",
+    "time": "08:08:25",
+    "message": "🚀 HỆ THỐNG KHỞI ĐỘNG LẠI: Đã khôi phục Live Feed & đối soát 0 lệnh mới từ Binance API!",
+    "timestamp": 1787792905
+  },
+  {
+    "type": "SUCCESS",
+    "time": "08:58:59",
+    "message": "🎯 [BÁN CHỐT SPOT THẬT] Đã bán chốt Spot SOL/USDT | PnL: +$0.51 | Order ID: 17686998862",
+    "timestamp": 1787795939
+  },
+  {
+    "type": "SUCCESS",
+    "time": "08:59:21",
+    "message": "🎯 [BÁN CHỐT SPOT THẬT] Đã bán chốt Spot ETH/USDT | PnL: +$0.30 | Order ID: 49381942319",
+    "timestamp": 1787795961
+  },
+  {
+    "type": "SUCCESS",
+    "time": "09:10:21",
+    "message": "✅ [MUA SPOT THẬT] Đã MUA SPOT THẬT ETH/USDT ($100.00 USDT) | Order ID: 49382102705",
+    "timestamp": 1787796621
+  },
+  {
+    "type": "SUCCESS",
+    "time": "14:12:19",
+    "message": "✅ [MUA SPOT THẬT] Đã MUA SPOT THẬT BNB/USDT ($80.00 USDT) | Order ID: 12481442944",
+    "timestamp": 1787814739
+  },
+  {
+    "type": "SUCCESS",
+    "time": "15:52:03",
+    "message": "🎯 [BÁN CHỐT SPOT THẬT] Đã bán chốt Spot ETH/USDT | PnL: +$1.25 | Order ID: 49388515210",
+    "timestamp": 1787820723
+  },
+  {
+    "type": "SUCCESS",
+    "time": "16:21:59",
+    "message": "✅ [MUA SPOT THẬT] Đã MUA SPOT THẬT ETH/USDT ($100.00 USDT) | Order ID: 49389447778",
+    "timestamp": 1787822519
+  },
+  {
+    "type": "SUCCESS",
+    "time": "16:32:04",
+    "message": "🎯 [BÁN CHỐT SPOT THẬT] Đã bán chốt Spot BNB/USDT | PnL: +$0.39 | Order ID: 12482415947",
+    "timestamp": 1787823124
+  },
+  {
+    "type": "SUCCESS",
+    "time": "16:32:17",
+    "message": "✅ [MUA SPOT THẬT] Đã MUA SPOT THẬT BNB/USDT ($80.00 USDT) | Order ID: 12482418884",
+    "timestamp": 1787823137
+  },
+  {
+    "type": "SUCCESS",
+    "time": "16:32:28",
+    "message": "🎯 [BÁN CHỐT SPOT THẬT] Đã bán chốt Spot ETH/USDT | PnL: +$0.50 | Order ID: 49390303037",
+    "timestamp": 1787823148
+  },
+  {
+    "type": "SUCCESS",
+    "time": "19:57:53",
+    "message": "🎯 [BÁN CHỐT SPOT THẬT] Đã bán chốt Spot BNB/USDT | PnL: -$1.33 | Order ID: 12483516229",
+    "timestamp": 1787835473
+  },
+  {
+    "type": "SUCCESS",
+    "time": "20:36:59",
+    "message": "🚀 HỆ THỐNG KHỞI ĐỘNG LẠI: Đã khôi phục Live Feed & đối soát 0 lệnh mới từ Binance API!",
+    "timestamp": 1787837819
+  },
+  {
+    "type": "SUCCESS",
+    "time": "20:39:18",
+    "message": "🚀 HỆ THỐNG KHỞI ĐỘNG LẠI: Đã khôi phục Live Feed & đối soát 0 lệnh mới từ Binance API!",
+    "timestamp": 1787837958
+  },
+  {
+    "type": "SUCCESS",
+    "time": "07:38:52",
+    "message": "🚀 HỆ THỐNG KHỞI ĐỘNG LẠI: Đã khôi phục Live Feed & đối soát 0 lệnh mới từ Binance API!",
+    "timestamp": 1787877532
+  },
+  {
+    "type": "SUCCESS",
+    "time": "07:40:04",
+    "message": "✅ [MUA SPOT THẬT] Đã MUA SPOT THẬT ETH/USDT ($100.00 USDT) | Order ID: 49413313741",
+    "timestamp": 1787877604
+  },
+  {
+    "type": "SUCCESS",
+    "time": "07:40:10",
+    "message": "✅ [MUA SPOT THẬT] Đã MUA SPOT THẬT BNB/USDT ($80.00 USDT) | Order ID: 12486752266",
+    "timestamp": 1787877610
+  },
+  {
+    "type": "SUCCESS",
+    "time": "08:34:05",
+    "message": "🚀 HỆ THỐNG KHỞI ĐỘNG LẠI: Đã khôi phục Live Feed & đối soát 0 lệnh mới từ Binance API!",
+    "timestamp": 1787880845
+  },
+  {
+    "type": "SUCCESS",
+    "time": "08:46:17",
+    "message": "🚀 HỆ THỐNG KHỞI ĐỘNG LẠI: Đã khôi phục Live Feed & đối soát 0 lệnh mới từ Binance API!",
+    "timestamp": 1787881577
+  },
+  {
+    "type": "SUCCESS",
+    "time": "08:46:34",
+    "message": "🚀 HỆ THỐNG KHỞI ĐỘNG LẠI: Đã khôi phục Live Feed & đối soát 0 lệnh mới từ Binance API!",
+    "timestamp": 1787881594
+  },
+  {
+    "type": "SUCCESS",
+    "time": "08:47:22",
+    "message": "🚀 HỆ THỐNG KHỞI ĐỘNG LẠI: Đã khôi phục Live Feed & đối soát 0 lệnh mới từ Binance API!",
+    "timestamp": 1787881642
+  },
+  {
+    "type": "SUCCESS",
+    "time": "09:31:32",
+    "message": "🎯 [BÁN CHỐT SPOT THẬT] Đã bán chốt Spot BNB/USDT | PnL: -$1.30 | Order ID: 12487418472",
+    "timestamp": 1787884292
+  },
+  {
+    "type": "SUCCESS",
+    "time": "11:37:52",
+    "message": "🎯 [BÁN CHỐT SPOT THẬT] Đã bán chốt Spot ETH/USDT | PnL: -$1.13 | Order ID: 49418570514",
+    "timestamp": 1787891872
+  },
+  {
+    "type": "SUCCESS",
+    "time": "12:48:54",
+    "message": "✅ [MUA SPOT THẬT] Đã MUA SPOT THẬT BNB/USDT ($80.00 USDT) | Order ID: 12488176416",
+    "timestamp": 1787896134
+  },
+  {
+    "type": "SUCCESS",
+    "time": "12:54:21",
+    "message": "✅ [MUA SPOT THẬT] Đã MUA SPOT THẬT ETH/USDT ($100.00 USDT) | Order ID: 49419565531",
+    "timestamp": 1787896461
+  },
+  {
+    "type": "SUCCESS",
+    "time": "13:46:22",
+    "message": "✅ [MUA SPOT THẬT] Đã MUA SPOT THẬT ETH/USDT ($100.00 USDT) | Order ID: 49420194191",
+    "timestamp": 1787899582
+  },
+  {
+    "type": "SUCCESS",
+    "time": "13:46:22",
+    "message": "✅ [MUA SPOT THẬT] Đã MUA SPOT THẬT SOL/USDT ($80.00 USDT) | Order ID: 17702351987",
+    "timestamp": 1787899582
+  },
+  {
+    "type": "SUCCESS",
+    "time": "16:41:48",
+    "message": "🚀 HỆ THỐNG KHỞI ĐỘNG LẠI: Đã khôi phục Live Feed & đối soát 0 lệnh mới từ Binance API!",
+    "timestamp": 1787910108
+  },
+  {
+    "type": "SUCCESS",
+    "time": "16:42:22",
+    "message": "🚀 HỆ THỐNG KHỞI ĐỘNG LẠI: Đã khôi phục Live Feed & đối soát 0 lệnh mới từ Binance API!",
+    "timestamp": 1787910142
+  },
+  {
+    "type": "SUCCESS",
+    "time": "16:42:54",
+    "message": "🎯 [BÁN CHỐT SPOT THẬT] Đã bán chốt Spot SOL/USDT | PnL: -$1.16 | Order ID: 17703062914",
+    "timestamp": 1787910174
+  },
+  {
+    "type": "SUCCESS",
+    "time": "16:42:58",
+    "message": "🎯 [BÁN CHỐT SPOT THẬT] Đã bán chốt Spot ETH/USDT | PnL: +$99.19 | Order ID: 49422381066",
+    "timestamp": 1787910178
+  },
+  {
+    "type": "SUCCESS",
+    "time": "16:43:07",
+    "message": "🎯 [BÁN CHỐT SPOT THẬT] Đã bán chốt Spot BNB/USDT | PnL: -$1.29 | Order ID: 12488999028",
+    "timestamp": 1787910187
+  },
+  {
+    "type": "SUCCESS",
+    "time": "19:18:34",
+    "message": "🚀 HỆ THỐNG KHỞI ĐỘNG LẠI: Đã khôi phục Live Feed & đối soát 0 lệnh mới từ Binance API!",
+    "timestamp": 1787919514
+  },
+  {
+    "type": "SUCCESS",
+    "time": "19:20:36",
+    "message": "✅ [MUA SPOT THẬT] Đã MUA SPOT THẬT ETH/USDT ($100.00 USDT) | Order ID: 49424462497",
+    "timestamp": 1787919636
   }
 ]
